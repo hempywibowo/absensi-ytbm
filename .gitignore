@@ -46,3 +46,6 @@ next-env.d.ts
 # sumber data mentah (sudah diekstrak ke data/seed-data.json)
 *.xlsx
 *.xls
+
+.vercel
+.env*
