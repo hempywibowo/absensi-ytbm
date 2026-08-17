@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   const rows = data?.rows ?? [];
   const hadir = rows.filter((r) => r.attendance?.clockIn).length;
-  const lengkap = rows.filter((r) => r.attendance?.clockIn && r.attendance?.clockOut).length;
+  const telat = rows.filter((r) => r.attendance?.status === "telat").length;
   const belum = rows.length - hadir;
 
   return (
@@ -53,10 +53,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <SummaryCard label="Total Guru" value={rows.length} />
-        <SummaryCard label="Sudah Clock In" value={hadir} tone="neutral" />
-        <SummaryCard label="Belum Absen" value={belum} tone="warning" />
+        <SummaryCard label="Sudah Clock In" value={hadir} />
+        <SummaryCard label="Telat" value={telat} />
+        <SummaryCard label="Belum Absen" value={belum} />
       </div>
 
       <Card className="overflow-x-auto p-0">
@@ -90,12 +91,14 @@ export default function DashboardPage() {
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  {r.attendance?.clockIn && r.attendance?.clockOut ? (
-                    <Badge tone="neutral">Lengkap</Badge>
-                  ) : r.attendance?.clockIn ? (
-                    <Badge tone="warning">Belum Clock Out</Badge>
-                  ) : (
+                  {!r.attendance?.clockIn ? (
                     <Badge tone="danger">Belum Absen</Badge>
+                  ) : r.attendance.status === "telat" ? (
+                    <Badge tone="danger">Telat</Badge>
+                  ) : r.attendance.clockOut ? (
+                    <Badge tone="neutral">Lengkap</Badge>
+                  ) : (
+                    <Badge tone="warning">Belum Clock Out</Badge>
                   )}
                 </td>
               </tr>

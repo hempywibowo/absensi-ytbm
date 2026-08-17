@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { uploadSelfie } from "@/lib/photo";
 import { appendAttendanceRow } from "@/lib/sheets";
 import { distanceInMeters, CLOCK_IN_RADIUS_METERS } from "@/lib/geo";
-import { todayJakarta, nowJakartaISO, formatJamJakarta } from "@/lib/date";
+import { todayJakarta, nowJakartaISO, formatJamJakarta, isLateJakarta } from "@/lib/date";
 import { mapAttendance } from "@/lib/mappers";
 import { getTeacherWithSchool } from "@/lib/teacher-school";
 
@@ -73,6 +73,7 @@ export async function POST(req) {
 
   const clockInTime = nowJakartaISO();
   const clockIn = { time: clockInTime, lat, lng, accuracy: accuracy ?? null, distance, photoPath };
+  const status = isLateJakarta(clockInTime) ? "telat" : "hadir";
 
   const { data: saved, error } = await supabase
     .from("attendance")
@@ -84,7 +85,7 @@ export async function POST(req) {
         school_id: teacher.school_id,
         school_name: school.name,
         date,
-        status: "hadir",
+        status,
         clock_in: clockIn,
       },
       { onConflict: "id" }
@@ -103,7 +104,7 @@ export async function POST(req) {
     tipe: "Clock In",
     jam: formatJamJakarta(clockInTime),
     jarakMeter: distance,
-    status: "Hadir",
+    status: status === "telat" ? "Telat" : "Hadir",
     fotoUrl: photoPath,
   });
 

@@ -46,7 +46,7 @@ export async function POST(req) {
 
   const { data: existing } = await supabase
     .from("attendance")
-    .select("clock_in, clock_out")
+    .select("clock_in, clock_out, status")
     .eq("id", attendanceId)
     .maybeSingle();
   if (!existing?.clock_in) {
@@ -74,7 +74,7 @@ export async function POST(req) {
     tipe: "Clock Out",
     jam: formatJamJakarta(clockOutTime),
     jarakMeter: distance,
-    status: "Hadir",
+    status: existing.status === "telat" ? "Telat" : "Hadir",
     fotoUrl: photoPath,
   });
 
