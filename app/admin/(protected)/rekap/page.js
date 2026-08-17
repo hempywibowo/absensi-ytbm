@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, Button } from "@/components/ui";
+import AttendanceChart from "@/components/AttendanceChart";
 
 function toISODate(d) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(d);
@@ -106,6 +107,13 @@ export default function RekapPage() {
       </Card>
 
       {error && <p className="text-sm text-danger">{error}</p>}
+
+      {data && (
+        <Card className="p-4">
+          <h2 className="mb-3 text-sm font-bold">Kondisi Absensi</h2>
+          <AttendanceChart rows={rows} />
+        </Card>
+      )}
 
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-sm">
