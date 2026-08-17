@@ -1,0 +1,79 @@
+{
+  "yayasan": "Yayasan Tunas Bangsa Mandiri",
+  "schools": [
+    {
+      "id": "tk-salsabila",
+      "name": "TK Salsabila",
+      "address": "Komplek Bojong Malaka Indah blok G5 no. 1 Desa Bojongmalaka, Kecamatan Baleendah Kabupaten Bandung. 40375",
+      "lat": -6.9857375,
+      "lng": 107.6062656,
+      "mapsLink": "2J74+PG2 Bojongmalaka, Bandung Regency, West Java"
+    },
+    {
+      "id": "tk-tunas-mandiri",
+      "name": "TK Tunas Mandiri",
+      "address": "Komplek Bojong Malaka Indah blok I2 no. 6-7 Desa Bojongmalaka, Kecamatan Baleendah Kabupaten Bandung. 40375",
+      "lat": -6.9867375,
+      "lng": 107.6083906,
+      "mapsLink": "2J75+892 Bojongmalaka, Bandung Regency, West Java"
+    },
+    {
+      "id": "kober-bocah-mandiri",
+      "name": "Kober Bocah Mandiri",
+      "address": "Komplek Bojong Malaka Indah blok G5 no. 4 Desa Bojongmalaka, Kecamatan Baleendah Kabupaten Bandung. 40375",
+      "lat": -6.9859375,
+      "lng": 107.6063125,
+      "mapsLink": "2J74+JG Bojongmalaka, Bandung Regency, West Java"
+    },
+    {
+      "id": "kober-al-ikhlas",
+      "name": "Kober Al Ikhlas",
+      "address": "Kampung Ciputat no. 83 RT01 RW06, Kelurahan Andir, Kecamatan Baleendah Kabupaten Bandung. 40375",
+      "lat": -6.9889375,
+      "lng": 107.6202031,
+      "mapsLink": "2J6C+C3G Andir, Bandung Regency, West Java"
+    },
+    {
+      "id": "kober-annisa",
+      "name": "Kober Annisa",
+      "address": "Kampung Parunghalang",
+      "lat": -6.9810375,
+      "lng": 107.6156094,
+      "mapsLink": "2J98+H6Q, Andir, Baleendah, Bandung Regency, West Java 40375"
+    }
+  ],
+  "teachers": [
+    { "id": "guru-yayah-tafriziah", "name": "Yayah Tafriziah, S.Pd. M.Si", "schoolId": "tk-salsabila", "freeLocation": true },
+    { "id": "guru-eneng-rohaeti", "name": "Eneng Rohaeti, S.Pd", "schoolId": "tk-salsabila" },
+    { "id": "guru-ane-nuraeni", "name": "Ane Nuraeni, S.Pd", "schoolId": "tk-salsabila" },
+
+    { "id": "guru-diah-halimatusadiah", "name": "Diah Halimatusadiah", "schoolId": "tk-tunas-mandiri" },
+    { "id": "guru-mas-ani", "name": "Mas Ani, S.Pd Aud", "schoolId": "tk-tunas-mandiri" },
+    { "id": "guru-yuni-surbexty", "name": "Yuni Surbexty", "schoolId": "tk-tunas-mandiri" },
+
+    { "id": "guru-dewi-fajriani", "name": "Dewi Fajriani", "schoolId": "kober-al-ikhlas", "freeLocation": true },
+    { "id": "guru-siti-nurhalimah", "name": "Siti Nurhalimah", "schoolId": "kober-al-ikhlas" },
+    { "id": "guru-yuni-agung-sobariah", "name": "Yuni Agung Sobariah", "schoolId": "kober-al-ikhlas" },
+
+    { "id": "guru-sri-garwati", "name": "Sri Garwati Dewi Asih", "schoolId": "kober-bocah-mandiri" },
+    { "id": "guru-vena-pratiwi", "name": "Vena Pratiwi Eka Putri", "schoolId": "kober-bocah-mandiri", "freeLocation": true },
+
+    { "id": "guru-lia-yuliati", "name": "Lia Yuliati", "schoolId": "kober-annisa" },
+    { "id": "guru-lilis-solihat", "name": "Lilis Solihat", "schoolId": "kober-annisa" },
+    { "id": "guru-maemunah", "name": "Maemunah", "schoolId": "kober-annisa" }
+  ],
+  "admins": [
+    {
+      "email": "tafriziahy@gmail.com",
+      "name": "Yayah Tafriziah, S.Pd. M.Si",
+      "role": "admin",
+      "schoolId": "tk-salsabila"
+    },
+    {
+      "email": "fajriyanidewi88@gmail.com",
+      "name": "Dewi Fajriani",
+      "role": "admin",
+      "schoolId": "kober-al-ikhlas"
+    }
+  ]
+}
