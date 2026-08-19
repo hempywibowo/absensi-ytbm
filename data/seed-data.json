@@ -65,6 +65,12 @@
   ],
   "admins": [
     {
+      "email": "hempywibowo@gmail.com",
+      "name": "Hempy Wibowo",
+      "role": "admin",
+      "schoolId": null
+    },
+    {
       "email": "tafriziahy@gmail.com",
       "name": "Yayah Tafriziah, S.Pd. M.Si",
       "role": "admin",
