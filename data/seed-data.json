@@ -46,14 +46,15 @@
     { "id": "guru-yayah-tafriziah", "name": "Yayah Tafriziah, S.Pd. M.Si", "schoolId": "tk-salsabila", "freeLocation": true },
     { "id": "guru-eneng-rohaeti", "name": "Eneng Rohaeti, S.Pd", "schoolId": "tk-salsabila" },
     { "id": "guru-ane-nuraeni", "name": "Ane Nuraeni, S.Pd", "schoolId": "tk-salsabila" },
+    { "id": "guru-anisa-nur-aulia", "name": "Anisa Nur Aulia", "schoolId": "tk-salsabila" },
 
     { "id": "guru-diah-halimatusadiah", "name": "Diah Halimatusadiah", "schoolId": "tk-tunas-mandiri" },
     { "id": "guru-mas-ani", "name": "Mas Ani, S.Pd Aud", "schoolId": "tk-tunas-mandiri" },
-    { "id": "guru-yuni-surbexty", "name": "Yuni Surbexty", "schoolId": "tk-tunas-mandiri" },
+    { "id": "guru-yuni-surbexty", "name": "Yuni Asih Subexti", "schoolId": "tk-tunas-mandiri" },
+    { "id": "guru-yuni-agung-sobariah", "name": "Yuni Agung Sobariah", "schoolId": "tk-tunas-mandiri" },
 
     { "id": "guru-dewi-fajriani", "name": "Dewi Fajriani", "schoolId": "kober-al-ikhlas", "freeLocation": true },
     { "id": "guru-siti-nurhalimah", "name": "Siti Nurhalimah", "schoolId": "kober-al-ikhlas" },
-    { "id": "guru-yuni-agung-sobariah", "name": "Yuni Agung Sobariah", "schoolId": "kober-al-ikhlas" },
 
     { "id": "guru-sri-garwati", "name": "Sri Garwati Dewi Asih", "schoolId": "kober-bocah-mandiri" },
     { "id": "guru-vena-pratiwi", "name": "Vena Pratiwi Eka Putri", "schoolId": "kober-bocah-mandiri", "freeLocation": true },
