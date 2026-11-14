@@ -21,7 +21,7 @@ export async function POST(request, { params }) {
   if (!song) return Response.json({ error: "Lagu tidak ditemukan." }, { status: 404 });
 
   try {
-    return Response.json(await createAudioUploadUrl(id, ext));
+    return Response.json(await createAudioUploadUrl(id, ext, body.kind === "preview" ? "preview" : "full"));
   } catch (err) {
     console.error(err);
     return Response.json({ error: err.message }, { status: 500 });

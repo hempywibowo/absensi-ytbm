@@ -39,7 +39,20 @@ Tanpa Supabase, lagu disimpan di `.data/songs.json` (khusus development).
 
 1. Buat project Supabase, jalankan `supabase/schema.sql` di SQL Editor.
 2. Import repo di Vercel, set **Root Directory = `forever-song`**.
-3. Isi env: `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_KEY`.
+3. Isi env: `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_KEY`,
+   `ADMIN_WHATSAPP` (nomor WA usaha untuk konfirmasi bayar, mis. 6281234567890) dan opsional
+   `QRIS_IMAGE_URL` (link gambar QRIS atas nama usaha).
+4. Jalankan **bagian 2** di `supabase/schema.sql` (kolom paket & pembayaran).
+
+## Alur jualan
+
+1. Calon pembeli isi form → **pratinjau gratis**: bait pertama + reff terlihat, sisanya diburamkan
+   (lirik yang terkunci tidak dikirim ke browser sama sekali).
+2. Opsional: minta **cuplikan audio** dengan nomor WA → admin upload cuplikan ±30 detik.
+3. Pilih paket (`lib/packages.js`) + nomor WA → nominal dengan **kode unik 3 digit** → bayar QRIS →
+   kirim bukti via WhatsApp.
+4. Admin cek mutasi → **Tandai Lunas** → lirik lengkap terbuka → upload lagu lengkap → kirim kabar ke pembeli.
+5. Halaman lagu berisi tombol bagikan + ajakan "Buat lagumu" untuk siapa pun yang membuka link.
 
 ## Struktur
 

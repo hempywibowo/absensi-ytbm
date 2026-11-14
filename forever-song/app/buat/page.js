@@ -109,7 +109,7 @@ export default function BuatLagu() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal membuat lagu.");
-      router.push(`/lagu/${data.id}`);
+      router.push(`/lagu/${data.id}?baru=1`);
     } catch (e) {
       setError(e.message);
       setLoading(false);
@@ -271,7 +271,7 @@ export default function BuatLagu() {
             </button>
           ) : (
             <button type="button" onClick={submit} className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground">
-              🎵 Buat Lagu
+              🎵 Lihat Pratinjau Gratis
             </button>
           )}
         </div>
