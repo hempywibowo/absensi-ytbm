@@ -130,7 +130,11 @@ export default function BuatLagu() {
       if (!res.ok) throw new Error(data.error || "Gagal membuat lagu.");
       router.push(`/lagu/${data.id}?baru=1`);
     } catch (e) {
-      setError(e.message);
+      setError(
+        e instanceof TypeError
+          ? "Koneksi ke server terputus. Pastikan internet lancar dan halaman ini dibuka langsung di browser (bukan di dalam jendela preview), lalu coba lagi."
+          : e.message,
+      );
       setLoading(false);
     }
   }
