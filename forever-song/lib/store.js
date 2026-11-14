@@ -77,6 +77,44 @@ export async function listSongs(limit = 100) {
   return (await readFileStore()).slice(0, limit);
 }
 
+// ---------- Audio (Supabase Storage) ----------
+
+const AUDIO_BUCKET = "song-audio";
+const AUDIO_MAX_BYTES = 50 * 1024 * 1024; // batas file paket gratis Supabase
+let bucketReady = false;
+
+async function ensureAudioBucket() {
+  if (bucketReady) return;
+  const storage = db().storage;
+  const { data } = await storage.getBucket(AUDIO_BUCKET);
+  if (!data) {
+    const { error } = await storage.createBucket(AUDIO_BUCKET, {
+      public: true, // supaya link MP3 bisa diputar langsung di halaman lagu
+      fileSizeLimit: AUDIO_MAX_BYTES,
+      allowedMimeTypes: ["audio/*"],
+    });
+    if (error && !/exist/i.test(error.message)) throw new Error(`Gagal membuat bucket audio: ${error.message}`);
+  }
+  bucketReady = true;
+}
+
+// Membuat URL upload sekali pakai supaya browser admin bisa upload file besar
+// langsung ke Supabase (tidak lewat server Vercel yang dibatasi ±4,5 MB per request).
+export async function createAudioUploadUrl(songId, ext) {
+  if (!useSupabase) {
+    throw new Error("Upload audio butuh Supabase (SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY).");
+  }
+  await ensureAudioBucket();
+  const storage = db().storage.from(AUDIO_BUCKET);
+  const path = `${songId}/${Date.now()}.${ext}`;
+  const { data, error } = await storage.createSignedUploadUrl(path);
+  if (error) throw new Error(`Gagal menyiapkan upload: ${error.message}`);
+  const { data: pub } = storage.getPublicUrl(path);
+  return { signedUrl: data.signedUrl, publicUrl: pub.publicUrl };
+}
+
+export { AUDIO_MAX_BYTES };
+
 export async function updateSong(id, patch) {
   const allowed = {};
   if ("audio_url" in patch) allowed.audio_url = patch.audio_url || null;

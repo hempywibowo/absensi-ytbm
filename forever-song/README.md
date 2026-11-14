@@ -17,7 +17,8 @@ Musik/audio lalu dipasang admin.
 2. Server memanggil Claude untuk menulis judul, dedikasi, lirik per bagian, chord, nada dasar, tempo,
    dan *prompt gaya musik* (bahasa Inggris) untuk produksi musik.
 3. **/lagu/[id]**: halaman lagu (lirik, tombol chord, player audio, bagikan ke WhatsApp)
-4. **/admin**: daftar pesanan, salin lirik & prompt musik, pasang link MP3, ubah status
+4. **/admin**: daftar pesanan, salin lirik & prompt musik, **upload file MP3** (disimpan di Supabase Storage,
+   bucket `song-audio` dibuat otomatis) atau tempel link audio, ubah status
 
 > Catatan: Claude hanya menulis lirik. Audionya dibuat terpisah, misalnya oleh produser
 > atau AI music generator memakai lirik + prompt musik dari halaman admin. Setelah itu link MP3-nya

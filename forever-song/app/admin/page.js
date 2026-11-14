@@ -26,12 +26,51 @@ function CopyButton({ text, label }) {
   );
 }
 
+// Upload langsung dari browser ke Supabase Storage (pakai XHR supaya ada progres).
+function putFile(url, file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+    form.append("cacheControl", "3600");
+    form.append("", file);
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", url);
+    xhr.setRequestHeader("x-upsert", "false");
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Upload gagal (${xhr.status})`)));
+    xhr.onerror = () => reject(new Error("Upload gagal, cek koneksi internet."));
+    xhr.send(form);
+  });
+}
+
 function SongRow({ song, adminKey, onUpdated }) {
   const [open, setOpen] = useState(false);
   const [audio, setAudio] = useState(song.audio_url || "");
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState("");
+  const [progress, setProgress] = useState(null);
   const { input, result } = song;
+
+  async function upload(file) {
+    if (!file) return;
+    setErr("");
+    setProgress(0);
+    try {
+      const res = await fetch(`/api/songs/${song.id}/upload-url`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+        body: JSON.stringify({ fileName: file.name, size: file.size }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      await putFile(data.signedUrl, file, setProgress);
+      setAudio(data.publicUrl);
+      await save({ audio_url: data.publicUrl, status: "selesai" });
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setProgress(null);
+    }
+  }
 
   async function save(patch) {
     setSaving(true);
@@ -105,7 +144,28 @@ function SongRow({ song, adminKey, onUpdated }) {
           </details>
 
           <div>
-            <p className="font-semibold">Link file audio (MP3, https://)</p>
+            <p className="font-semibold">Audio lagu</p>
+            {song.audio_url && <audio controls src={song.audio_url} className="mt-2 w-full" preload="none" />}
+
+            <label
+              className={`mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary/40 bg-primary-soft px-4 py-4 font-semibold text-primary ${
+                progress !== null || saving ? "pointer-events-none opacity-60" : ""
+              }`}
+            >
+              {progress !== null ? `Mengupload... ${progress}%` : song.audio_url ? "⬆️ Ganti file MP3" : "⬆️ Upload file MP3 (dari Suno, dll)"}
+              <input
+                type="file"
+                accept="audio/*,.mp3,.m4a,.wav"
+                className="hidden"
+                onChange={(e) => {
+                  upload(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <p className="mt-1 text-xs text-muted">Maksimal 50 MB. Setelah upload, lagu langsung bisa diputar di halaman pelanggan.</p>
+
+            <p className="mt-3 text-xs text-muted">Atau tempel link audio (https://):</p>
             <div className="mt-1 flex gap-2">
               <input
                 value={audio}
