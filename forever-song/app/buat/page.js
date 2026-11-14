@@ -90,13 +90,32 @@ export default function BuatLagu() {
 
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
 
-  const canNext = [
-    () => form.genre,
-    () => form.recipient && form.recipientName.trim() && form.senderName.trim() && form.occasion,
-    () => form.story.trim().length >= 20,
-    () => form.mood && form.vocal && form.language,
-    () => true,
-  ][step]();
+  const [hint, setHint] = useState("");
+
+  // Apa saja yang belum diisi di langkah ini (ditampilkan kalau user klik Lanjut).
+  const missing = [
+    () => [!form.genre && "genre"],
+    () => [
+      !form.recipient && "lagu ini untuk siapa",
+      !form.recipientName.trim() && "nama penerima",
+      !form.senderName.trim() && "nama kamu (pengirim)",
+      !form.occasion && "momen / acaranya",
+    ],
+    () => [form.story.trim().length < 20 && "cerita minimal 20 karakter"],
+    () => [!form.mood && "suasana lagu", !form.vocal && "vokal", !form.language && "bahasa"],
+    () => [],
+  ][step]().filter(Boolean);
+  const canNext = missing.length === 0;
+
+  function next() {
+    if (!canNext) {
+      setHint(`Belum diisi: ${missing.join(", ")}.`);
+      return;
+    }
+    setHint("");
+    setStep((s) => s + 1);
+    window.scrollTo({ top: 0 });
+  }
 
   async function submit() {
     setLoading(true);
@@ -254,7 +273,10 @@ export default function BuatLagu() {
         <div className="flex justify-between gap-3 pt-2">
           <button
             type="button"
-            onClick={() => setStep((s) => s - 1)}
+            onClick={() => {
+              setHint("");
+              setStep((s) => s - 1);
+            }}
             disabled={step === 0}
             className="rounded-full border border-border px-6 py-3 font-semibold disabled:invisible"
           >
@@ -263,9 +285,8 @@ export default function BuatLagu() {
           {step < STEPS.length - 1 ? (
             <button
               type="button"
-              onClick={() => setStep((s) => s + 1)}
-              disabled={!canNext}
-              className="rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground disabled:opacity-40"
+              onClick={next}
+              className={`rounded-full bg-primary px-8 py-3 font-semibold text-primary-foreground ${canNext ? "" : "opacity-60"}`}
             >
               Lanjut
             </button>
@@ -275,9 +296,7 @@ export default function BuatLagu() {
             </button>
           )}
         </div>
-        {step === 2 && !canNext && form.story.length > 0 && (
-          <p className="text-right text-xs text-muted">Ceritanya minimal 20 karakter ya</p>
-        )}
+        {hint && !canNext && <p className="rounded-xl bg-gold-soft px-4 py-3 text-sm">⚠️ {hint}</p>}
       </div>
     </main>
   );
