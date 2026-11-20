@@ -94,6 +94,29 @@ Buka `http://localhost:3000` (halaman guru) dan `http://localhost:3000/admin` (l
 Push ke GitHub, import project di vercel.com, paste semua isi `.env.local` ke Environment Variables
 project-nya, lalu Deploy.
 
+## Fitur Rapor Anak (`/rapor`)
+
+Modul terpisah untuk menyusun rapor naratif PAUD/TK (Kurikulum Merdeka, Fase Fondasi). Fitur ini
+**tidak mengubah apa pun di absensi**: tidak ada tabel baru, tidak menulis ke database. Data rapor
+(kelas, murid, catatan, narasi) disimpan di perangkat guru (localStorage), plus fitur unduh/pulihkan
+cadangan. Server hanya membaca daftar sekolah & nama guru untuk dropdown.
+
+Alur guru:
+1. **Kelas** — pilih sekolah (dropdown), isi nama kelas, kelompok usia, guru, kepala sekolah, semester.
+2. **Murid** — ketik satu-satu, tempel daftar nama, atau **foto daftar absen** (dibaca AI, diperiksa
+   dulu sebelum disimpan).
+3. **Catatan Harian** — ketik catatan per anak, atau **foto catatan/laporan harian guru** (satu anak
+   atau banyak anak sekaligus; nama otomatis dicocokkan ke daftar murid, bisa dikoreksi).
+4. **Rapor** — susun narasi per elemen dari catatan (AI), sunting, isi TB/BB & kehadiran, lalu
+   cetak / simpan PDF (A4).
+
+Env tambahan (di Vercel juga):
+- `ANTHROPIC_API_KEY` — wajib untuk baca foto & narasi otomatis (fitur ketik manual tetap jalan tanpa ini).
+- `RAPOR_KODE_AKSES` — opsional tapi disarankan. Kalau diisi, guru harus memasukkan kode yang sama di
+  tab Kelas sebelum memakai fitur AI, supaya orang luar tidak bisa memakai kuota AI lewat URL publik.
+
+Foto yang dikirim ke AI tidak disimpan di server; hanya teks hasil bacaannya yang disimpan di perangkat guru.
+
 ## Catatan penting
 
 - Radius toleransi clock-in/out: **100 meter** dari koordinat sekolah — bisa diubah di
