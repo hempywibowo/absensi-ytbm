@@ -116,7 +116,7 @@ export default function PantauanRaporPage() {
           </div>
 
           <p className="text-xs text-muted">
-            🟩 ada catatan/ceklis harian · 🟧 PPM minggu ini sudah diunggah · 🟥 tidak ada (hari sudah lewat) · ⬜ izin / belum lewat. Data muncul setelah guru menekan
+            Angka = jumlah catatan hari itu (✓ = hanya ceklis). 🟩 ada catatan/ceklis harian · 🟧 PPM minggu ini sudah diunggah · 🟥 tidak ada (hari sudah lewat) · ⬜ izin / belum lewat. Data muncul setelah guru menekan
             &quot;Kirim ke Server&quot;. Kelengkapan CP adalah rata-rata sub-elemen yang sudah ada bukti per anak (target 14 di akhir
             semester), bukan nilai harian.
           </p>
@@ -177,7 +177,9 @@ export default function PantauanRaporPage() {
                             return (
                               <td key={h} className="px-1 py-2 text-center">
                                 <span className={`inline-block min-w-9 rounded-md px-1.5 py-1 text-xs font-bold ${warna}`} title={izin ? "Izin" : `${g.harian[h]?.catatan || 0} catatan, ${g.harian[h]?.ceklis || 0} anak dicentang`}>
-                                  {izin ? "izin" : n || (ppm.length ? "PPM" : lewat && kelasAda ? "0" : "–")}
+                                  {izin
+                                    ? "izin"
+                                    : g.harian[h]?.catatan || (n ? "✓" : ppm.length ? "PPM" : lewat && kelasAda ? "0" : "–")}
                                 </span>
                               </td>
                             );
