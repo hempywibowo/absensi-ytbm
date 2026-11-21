@@ -151,7 +151,26 @@ export default function PanduanRaporPage() {
         <Langkah>
           <li>Buka <b>absensi-ytbm.vercel.app/rapor</b> di Chrome (Android/laptop) atau Safari (iPhone).</li>
           <li>
-            Agar mudah dibuka: menu browser <B>⋮</B> → <b>Tambahkan ke layar utama</b>. Ikon Rapor akan muncul seperti aplikasi.
+            Pasang ikon <b>Rapor YTBM</b> di layar utama supaya terbuka seperti aplikasi (layar penuh):
+            <ul className="mt-1 list-disc pl-6">
+              <li>
+                <b>Android (Chrome)</b>: ketuk <B>⋮</B> → <b>gulir menu ke bawah</b> → <b>Instal aplikasi</b> / <b>Tambahkan ke layar
+                utama</b> → <b>Instal</b>. Bisa juga muncul tawaran &quot;Instal Rapor YTBM&quot; di bawah layar.
+              </li>
+              <li>
+                Dibuka dari link WhatsApp? Ketuk <B>⋮</B> → <b>Buka di Chrome</b> dulu, baru instal.
+              </li>
+              <li>
+                <b>Samsung Internet</b>: <B>≡</B> → <b>Tambahkan halaman ke</b> → <b>Layar utama</b>.
+              </li>
+              <li>
+                <b>iPhone (Safari)</b>: ikon <b>Bagikan</b> (kotak bertanda panah) → <b>Tambahkan ke Layar Utama</b> → <b>Tambah</b>.
+              </li>
+              <li>
+                <b>Laptop (Chrome/Edge)</b>: ikon instal di ujung kanan kolom alamat, atau <B>⋮</B> → <b>Transmisikan, simpan, dan
+                bagikan</b> → <b>Instal halaman sebagai aplikasi</b>.
+              </li>
+            </ul>
           </li>
           <li>
             Tab <b>Kelas</b>: pilih <b>Sekolah</b>, <b>Guru kelas (akun)</b> = nama Anda, isi <b>Nama kelas</b> (mis. B2) dan{" "}
@@ -194,6 +213,15 @@ export default function PanduanRaporPage() {
             agama, nama ayah & ibu.
           </li>
         </ul>
+        <p>
+          <b>Memperbaiki data anak</b> (salah ketik nama, tanggal lahir, dll.): di Daftar Murid ketuk <b>Ubah</b> → perbaiki →{" "}
+          <B>Simpan perubahan</B>. Catatan & penilaian anak tetap aman.
+        </p>
+        <p>
+          <b>Menghapus anak</b>: ketuk <b className="text-danger">Hapus</b> di samping nama → <b>OK</b>. Seluruh data anak itu (catatan,
+          penilaian, narasi, Semester 1 & 2) ikut terhapus — unduh cadangan dulu bila ragu. Lalu <B>⬆️ Kirim ke Server</B> agar data
+          di server ikut diperbarui.
+        </p>
         <p>
           Titik oranye ● di samping nama = data belum lengkap. Ketuk <b>Ubah</b> untuk melengkapi — data ini tercetak di identitas
           rapor.
