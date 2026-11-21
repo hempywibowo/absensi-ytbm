@@ -62,3 +62,18 @@ alter table rapor_pin enable row level security;
 alter table rapor_kelas enable row level security;
 alter table rapor_jurnal enable row level security;
 alter table rapor_kiriman enable row level security;
+
+-- Rencana mingguan (PPM) per kelas. "dikirim_pertama" dipakai untuk menilai ketepatan waktu
+-- (wajib masuk paling lambat Jumat 23.59 WIB sebelum minggu berjalan).
+create table if not exists rapor_rencana (
+  kelas_id text not null references rapor_kelas(id) on delete cascade,
+  senin date not null,
+  teacher_id text not null,
+  school_id text not null,
+  data jsonb not null,
+  dikirim_pertama timestamptz not null default now(),
+  diperbarui timestamptz not null default now(),
+  primary key (kelas_id, senin)
+);
+create index if not exists rapor_rencana_school_senin_idx on rapor_rencana(school_id, senin);
+alter table rapor_rencana enable row level security;

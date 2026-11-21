@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getCurrentAdmin } from "@/lib/admin-auth";
 import { SEMUA_SUB, subTerisi } from "@/lib/rapor-cp";
+import { kekuranganPpm } from "@/lib/rapor-rencana";
+
+// Batas unggah PPM: Jumat 23.59 WIB sebelum Senin minggu itu.
+const batasPpm = (senin) => new Date(`${addDays(senin, -3)}T23:59:59+07:00`);
 
 const tanggalValid = (t) => /^\d{4}-\d{2}-\d{2}$/.test(t || "");
 
@@ -21,7 +25,9 @@ export async function GET(req) {
   const supabase = getSupabaseAdmin();
   const batasi = (q) => (admin.role === "kepsek" ? q.eq("school_id", admin.schoolId) : q);
 
-  const [teachersRes, schoolsRes, kelasRes, jurnalRes, pinRes, leaveRes] = await Promise.all([
+  const seninIni = from;
+  const seninDepan = addDays(from, 7);
+  const [teachersRes, schoolsRes, kelasRes, jurnalRes, pinRes, leaveRes, rencanaRes] = await Promise.all([
     batasi(supabase.from("teachers").select("id, name, school_id").order("name")),
     supabase.from("schools").select("id, name").order("name"),
     batasi(supabase.from("rapor_kelas").select("id, teacher_id, school_id, nama_kelas, kelompok, semester, jumlah_murid, uploaded_at, data")),
@@ -30,8 +36,9 @@ export async function GET(req) {
     batasi(
       supabase.from("leave_requests").select("teacher_id, date").eq("status", "approved").gte("date", from).lte("date", to),
     ),
+    batasi(supabase.from("rapor_rencana").select("kelas_id, senin, data, dikirim_pertama").in("senin", [seninIni, seninDepan])),
   ]);
-  for (const r of [teachersRes, schoolsRes, kelasRes, jurnalRes, pinRes, leaveRes]) {
+  for (const r of [teachersRes, schoolsRes, kelasRes, jurnalRes, pinRes, leaveRes, rencanaRes]) {
     if (r.error) {
       const belumAdaTabel = /rapor_/.test(r.error.message) && /does not exist|schema cache/.test(r.error.message);
       return NextResponse.json(
@@ -42,6 +49,17 @@ export async function GET(req) {
   }
 
   const sekolahById = Object.fromEntries((schoolsRes.data ?? []).map((s) => [s.id, s.name]));
+  const statusPpm = (kelasId, senin) => {
+    const r = (rencanaRes.data ?? []).find((x) => x.kelas_id === kelasId && x.senin === senin);
+    if (!r) return { ada: false, lewatBatas: new Date() > batasPpm(senin) };
+    return {
+      ada: true,
+      dikirim: r.dikirim_pertama,
+      tepat: new Date(r.dikirim_pertama) <= batasPpm(senin),
+      kurang: kekuranganPpm(r.data),
+      tema: r.data?.subTema || r.data?.tema || "",
+    };
+  };
   const pinAda = new Set((pinRes.data ?? []).map((p) => p.teacher_id));
 
   const guru = {};
@@ -89,9 +107,18 @@ export async function GET(req) {
       narasiSiap: murid.filter((m) => sem.rapor?.[m.id]?.agama).length,
       rencanaMinggu,
       ppm: (sem.ppm || []).length,
+      ppmIni: statusPpm(k.id, seninIni),
+      ppmDepan: statusPpm(k.id, seninDepan),
+      // Skor kesesuaian harian dengan PPM, dan laporan mingguan.
+      skorHarian: Object.fromEntries(
+        Object.entries(sem.evaluasi || {})
+          .filter(([t]) => t >= from && t <= to)
+          .map(([t, e]) => [t, e.skor]),
+      ),
+      laporan: sem.laporan?.[seninIni] ? { kesesuaian: sem.laporan[seninIni].kesesuaian } : null,
       // PPM mingguan yang diunggah guru untuk minggu-minggu dalam rentang ini.
       ppmMinggu: (sem.ppm || [])
-        .filter((p) => p.tanggal && p.tanggal >= addDays(from, -6) && p.tanggal <= to)
+        .filter((p) => p.jenis !== "rencana" && p.tanggal && p.tanggal >= addDays(from, -6) && p.tanggal <= to)
         .map((p) => ({ tanggal: p.tanggal, minggu: p.minggu, tema: p.subTema || p.tema })),
       terakhirKirim: k.uploaded_at,
     });

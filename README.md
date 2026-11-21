@@ -96,38 +96,43 @@ project-nya, lalu Deploy.
 
 ## Fitur Rapor Anak (`/rapor`)
 
-Modul untuk menyusun rapor PAUD/TK Kurikulum Merdeka **Fase Fondasi**, mengacu CP
-**SK BSKAP 046/H/KR/2025** (3 elemen, 14 sub-elemen) dan ATP dari **Panduan CP Fase Fondasi Edisi
-Revisi 2025** (41 lingkup, 139 TP — data di `lib/rapor-cp.js`). Tidak mengubah tabel/fitur absensi.
+Modul pembelajaran & rapor PAUD/TK Kurikulum Merdeka **Fase Fondasi**, mengacu CP **SK BSKAP
+046/H/KR/2025** (3 elemen, 14 sub-elemen) dan ATP **Panduan CP Fase Fondasi Edisi Revisi 2025**
+(41 lingkup, 139 TP — `lib/rapor-cp.js`). Tidak mengubah tabel/fitur absensi.
 
-**Cara kerja data:** guru mengerjakan semuanya di HP/laptop (localStorage) sebagai draf yang masih bisa
-diubah. Setelah jam kelas, guru mereview catatan satu per satu, lalu menekan **"Kirim ke Server"** (pakai
-PIN guru). Data yang sudah direview tersalin ke tabel `rapor_*` di Supabase; dashboard kepala sekolah/admin
-membaca dari situ. Kirim ulang kapan saja untuk memperbarui.
+### Alur mingguan guru
+1. **Jumat (paling lambat 23.59 WIB): unggah PPM minggu depan** (tab PPM, file Word). AI membaca DPL,
+   CP/TP (dipetakan ke ATP resmi), tema, kegiatan, pertanyaan pemantik, dan asesmen awal; aplikasi
+   mengecek kelengkapannya. PPM **wajib** sebelum minggu berjalan — dashboard menandai tepat waktu/terlambat.
+2. **Senin–Jumat: laporan harian** (tab Harian): catatan kegiatan + foto/video (opsional), label anak &
+   CP/TP otomatis dari AI, ceklis TP minggu ini, review satu per satu setelah kelas. Setelah semua direview,
+   **kesesuaian hari itu dengan PPM dinilai otomatis** (skor %, kegiatan terlaksana/belum, TP teramati).
+3. **Jumat siang: Laporan Aktivitas Mingguan** — rencana vs pelaksanaan, TP & anak yang belum teramati,
+   kegiatan di luar rencana, saran, dan paragraf **Asesmen Awal** siap tempel untuk PPM minggu depan.
+4. **Akhir semester**: Penilaian CP (naik otomatis dari bukti) → narasi rapor → cetak/PDF.
 
-Alur guru (tab di `/rapor`, tombol Sem 1/Sem 2 di atas):
-1. **Kelas** — sekolah, guru (akun dari data guru yayasan), nama kelas, kelompok, kepala sekolah, NIP.
-2. **Murid** — ketik (data lengkap), tempel daftar, atau foto daftar absen.
-3. **Harian** — rencana TP minggu ini (3–5 TP dari ATP), catatan kegiatan (ketik/foto) yang otomatis
-   diberi label anak + sub-elemen/TP oleh AI, ceklis cepat TP minggu ini per anak, review satu per satu,
-   kelengkapan (TP/anak yang belum diamati minggu ini), dan Kirim ke Server.
-4. **PPM** — alternatif: unggah file Word PPM mingguan (dibaca AI jadi ceklis + anekdot).
-5. **Penilaian CP** — per anak, 14 sub-elemen: TP yang sudah dicapai per lingkup (naik otomatis dari
-   catatan/ceklis/PPM, bisa diubah guru), bukti, kokurikuler + 8 Dimensi Profil Lulusan.
-6. **Rapor** — narasi disusun AI dari semua bukti, bisa disunting, cetak/PDF A4 + lampiran capaian TP.
+PPM yang sudah berisi asesmen (☑/☐, anekdot) tetap bisa diunggah untuk mengejar rapor semester berjalan.
 
-**Dashboard** `/admin/rapor` (kepala sekolah: sekolahnya sendiri; admin: semua sekolah): kalender aktivitas
-guru per hari (catatan/ceklis), rencana TP minggu itu, rata-rata sub-elemen yang sudah ada bukti per kelas,
-terakhir kirim, buat/ganti PIN guru, dan detail kelas (bukti CP per anak, catatan terbaru, pratinjau narasi).
+**Data**: dikerjakan di perangkat guru (draf, bisa diubah). Tombol **Kirim ke Server** (PIN guru) mengunggah
+foto/video ke Google Drive yayasan lalu menyalin data yang sudah direview ke tabel `rapor_*`.
 
-**Setup sekali:** jalankan [`supabase/rapor.sql`](supabase/rapor.sql) di Supabase SQL Editor, lalu buat PIN
-tiap guru di dashboard Rapor.
+**Dashboard** `/admin/rapor` (kepsek: sekolahnya; admin: semua): status PPM minggu ini & minggu depan
+(tepat waktu/terlambat/belum, kelengkapan), laporan harian per hari + skor kesesuaian, laporan mingguan,
+rata-rata bukti CP, PIN guru, dan detail kelas (rencana, laporan, foto kegiatan, bukti CP per anak, narasi).
 
-Env tambahan (di Vercel juga):
-- `ANTHROPIC_API_KEY` — wajib untuk fitur AI (baca foto/PPM, label catatan, usulan penilaian, narasi).
-- `RAPOR_KODE_AKSES` — opsional tapi disarankan, supaya orang luar tidak bisa memakai kuota AI lewat URL publik.
-
-Foto/file yang dikirim ke AI tidak disimpan; hanya teks hasil bacaannya.
+### Setup sekali
+1. Jalankan [`supabase/rapor.sql`](supabase/rapor.sql) di Supabase SQL Editor.
+2. Buat PIN tiap guru di dashboard Rapor.
+3. Env di Vercel:
+   - `ANTHROPIC_API_KEY` — wajib untuk fitur AI.
+   - `RAPOR_KODE_AKSES` — opsional, disarankan.
+   - Google Drive (foto/video): `GOOGLE_DRIVE_FOLDER_ID` (id folder "Rapor YTBM") **dan salah satu**:
+     - Akun Google yayasan (Gmail): `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`,
+       `GOOGLE_DRIVE_REFRESH_TOKEN` (OAuth, scope `drive.file`; publikasikan OAuth app ke "In production"
+       supaya refresh token tidak kedaluwarsa tiap 7 hari).
+     - Google Workspace: service account Sheets (`GOOGLE_SHEETS_CLIENT_EMAIL`/`GOOGLE_SHEETS_PRIVATE_KEY`)
+       dijadikan anggota (Content manager) sebuah **Shared Drive**, dan folder induk ada di Shared Drive itu.
+   Tanpa Drive, foto/video tetap tersimpan di perangkat guru; data lain tetap terkirim.
 
 ## Catatan penting
 

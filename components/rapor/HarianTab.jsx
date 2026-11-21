@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Card, Button, Badge } from "@/components/ui";
 import { LINGKUP_BY_ID } from "@/lib/rapor-cp";
+import { DIMENSI } from "@/lib/rapor-cp";
 import {
+  batasPpm,
   hariIniISO,
   idBaru,
   naikkanNilai,
@@ -16,6 +18,8 @@ import {
 } from "@/lib/rapor-client";
 import FotoPicker from "./FotoPicker";
 import KirimServer from "./KirimServer";
+import LampiranMedia, { MiniMedia } from "./LampiranMedia";
+import { EvaluasiHarian, LaporanMingguan } from "./EvaluasiPpm";
 import { ChipTp, Judul, OpsiTp, Pesan, Ruas, kelasInput } from "./bagian";
 
 const kunciTp = (t) => `${t.lingkup_id}:${t.level}`;
@@ -35,6 +39,8 @@ export default function HarianTab({ data, ubah, keTab }) {
   const [galat, setGalat] = useState("");
   const [info, setInfo] = useState("");
   const [reviewKe, setReviewKe] = useState(null); // index entri yang sedang direview
+  const [lampiran, setLampiran] = useState([]); // foto/video untuk catatan baru
+  const [pemicuNilai, setPemicuNilai] = useState(0); // naik -> nilai kesesuaian otomatis
   // Rencana minggu terbuka otomatis bila minggu ini belum punya rencana.
   const [bukaRencana, setBukaRencana] = useState(() => {
     const r = semAktif(data).minggu?.[seninDari(hariIniISO())];
@@ -57,7 +63,12 @@ export default function HarianTab({ data, ubah, keTab }) {
   const hariMinggu = [0, 1, 2, 3, 4].map((i) => tambahHari(senin, i));
   if (!hariMinggu.includes(tanggal)) hariMinggu.push(tanggal);
   const semuaHariMinggu = [0, 1, 2, 3, 4, 5, 6].map((i) => tambahHari(senin, i));
-  const rencana = S.minggu?.[senin] || { tema: "", subTema: "", tp: [] };
+  const rencana = { tema: "", subTema: "", tp: [], ...(S.minggu?.[senin] || {}) };
+  // Mulai Kamis, ingatkan PPM minggu depan bila belum ada.
+  const seninDepan = tambahHari(senin, 7);
+  const rencanaDepan = S.minggu?.[seninDepan];
+  const perluPpmDepan = tanggal >= tambahHari(senin, 3) && !(rencanaDepan?.tp?.length || rencanaDepan?.kegiatan?.length);
+  const lewatBatasDepan = new Date() > batasPpm(seninDepan);
   const entriHari = (S.jurnal || []).filter((j) => j.tanggal === tanggal);
   const draf = entriHari.filter((j) => j.status !== "direview");
   const ceklisHari = S.ceklis?.[tanggal] || {};
@@ -111,10 +122,12 @@ export default function HarianTab({ data, ubah, keTab }) {
       label: [],
       sumber: "ketik",
       status: "draf",
+      media: lampiran,
     };
     setJurnal((list) => [...list, baru]);
     setIsi("");
     setAnakDipilih([]);
+    setLampiran([]);
     setGalat("");
     setInfo("Catatan tersimpan sebagai draf. Memberi label CP/TP…");
     setSibuk("label");
@@ -144,7 +157,10 @@ export default function HarianTab({ data, ubah, keTab }) {
           label: [],
           sumber: "foto",
           status: "draf",
+          media: [],
         }));
+      if (baru.length && lampiran.length) baru[0].media = lampiran;
+      setLampiran([]);
       setJurnal((list) => [...list, ...baru]);
       setFoto([]);
       setMode(null);
@@ -195,7 +211,8 @@ export default function HarianTab({ data, ubah, keTab }) {
     if (reviewKe + 1 < antrianReview.length) setReviewKe(reviewKe + 1);
     else {
       setReviewKe(null);
-      setInfo("Semua catatan hari ini sudah direview. Tekan \"Kirim ke Server\" bila sudah oke.");
+      setInfo("Semua catatan hari ini sudah direview — kesesuaian dengan PPM dinilai otomatis. Lalu tekan \"Kirim ke Server\".");
+      if (rencana.tp.length || rencana.kegiatan?.length) setPemicuNilai((x) => x + 1);
     }
   }
 
@@ -260,6 +277,27 @@ export default function HarianTab({ data, ubah, keTab }) {
         })}
       </div>
 
+      {/* Kewajiban PPM */}
+      {!rencana.tp.length && !rencana.kegiatan?.length && (
+        <Pesan tone="danger">
+          ⚠️ PPM minggu ini belum diunggah. PPM wajib diunggah sebelum minggu berjalan (paling lambat Jumat 23.59 WIB).{" "}
+          <button type="button" className="font-semibold underline" onClick={() => keTab("ppm")}>
+            Unggah PPM
+          </button>
+        </Pesan>
+      )}
+      {perluPpmDepan && (
+        <Pesan tone="warning">
+          📂 PPM minggu depan ({tanggalIndo(seninDepan)}) belum ada.{" "}
+          {lewatBatasDepan
+            ? "Batas Jumat 23.59 WIB sudah lewat — segera unggah (tercatat terlambat)."
+            : `Batas unggah: Jumat ${tanggalIndo(tambahHari(seninDepan, -3))} pukul 23.59 WIB.`}{" "}
+          <button type="button" className="font-semibold underline" onClick={() => keTab("ppm")}>
+            Unggah sekarang
+          </button>
+        </Pesan>
+      )}
+
       {/* Rencana minggu */}
       <Card>
         <button type="button" onClick={() => setBukaRencana(!bukaRencana)} className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
@@ -283,6 +321,32 @@ export default function HarianTab({ data, ubah, keTab }) {
                 <input className={kelasInput} value={rencana.subTema} onChange={(e) => setRencana({ subTema: e.target.value })} />
               </Ruas>
             </div>
+            {rencana.sumber === "ppm" && (
+              <div className="flex flex-col gap-2 rounded-xl bg-primary-soft p-3 text-xs">
+                <p className="font-semibold text-primary">Dari PPM: {rencana.file}</p>
+                {rencana.dpl?.length > 0 && <p><b>DPL:</b> {rencana.dpl.map((i) => DIMENSI[i]).join(", ")}</p>}
+                {rencana.kegiatan?.length > 0 && (
+                  <details>
+                    <summary className="cursor-pointer font-semibold">Kegiatan ({rencana.kegiatan.length})</summary>
+                    <ol className="mt-1 list-decimal pl-5">
+                      {rencana.kegiatan.map((k, i) => (
+                        <li key={i}>{k.teks}</li>
+                      ))}
+                    </ol>
+                  </details>
+                )}
+                {rencana.pemantik?.length > 0 && (
+                  <details>
+                    <summary className="cursor-pointer font-semibold">Pertanyaan pemantik ({rencana.pemantik.length})</summary>
+                    <ul className="mt-1 list-disc pl-5">
+                      {rencana.pemantik.map((q, i) => (
+                        <li key={i}>{q}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
+            )}
             <p className="text-xs font-semibold text-muted">TP minggu ini (3–5 TP dari ATP resmi)</p>
             <div className="flex flex-wrap gap-1.5">
               {rencana.tp.map((t, i) => (
@@ -342,6 +406,8 @@ export default function HarianTab({ data, ubah, keTab }) {
             </div>
           )}
 
+          {mode && <LampiranMedia media={lampiran} setMedia={setLampiran} />}
+
           {mode === "ketik" && (
             <form onSubmit={simpanKetik} className="flex flex-col gap-2">
               <textarea
@@ -380,6 +446,13 @@ export default function HarianTab({ data, ubah, keTab }) {
                     {e.status === "direview" ? <Badge>✓ direview</Badge> : <Badge tone="warning">draf</Badge>}
                   </div>
                   <p className="line-clamp-3 text-sm">{e.isi}</p>
+                  {e.media?.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {e.media.map((m) => (
+                        <MiniMedia key={m.id} m={m} />
+                      ))}
+                    </div>
+                  )}
                   {e.label?.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {e.label.map((l, k) => (
@@ -430,6 +503,8 @@ export default function HarianTab({ data, ubah, keTab }) {
                 );
               })}
             </div>
+            <p className="text-xs font-semibold text-muted">Foto / video kegiatan</p>
+            <LampiranMedia media={cur.media || []} setMedia={(m) => ubahEntri(cur.id, { media: m })} />
             <p className="text-xs font-semibold text-muted">Label CP/TP {cur.berlabel ? "(usulan AI — periksa)" : ""}</p>
             <div className="flex flex-wrap gap-1.5">
               {(cur.label || []).map((l, k) => (
@@ -547,6 +622,9 @@ export default function HarianTab({ data, ubah, keTab }) {
           <p className="text-xs text-muted">Ini pengingat untuk pengamatan berikutnya, bukan nilai. Tidak semua TP harus muncul dalam sehari.</p>
         </div>
       </Card>
+
+      <EvaluasiHarian data={data} ubah={ubah} S={S} tanggal={tanggal} rencana={rencana} pemicu={pemicuNilai} />
+      <LaporanMingguan data={data} ubah={ubah} S={S} senin={senin} rencana={rencana} />
 
       <KirimServer data={data} ubah={ubah} />
     </>

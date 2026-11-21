@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, Badge } from "@/components/ui";
-import { CP, SEMUA_SUB, LINGKUP_BY_ID, subTerisi } from "@/lib/rapor-cp";
+import { CP, DIMENSI, SEMUA_SUB, LINGKUP_BY_ID, subTerisi } from "@/lib/rapor-cp";
 
 function tgl(isoTgl) {
   return isoTgl ? new Date(`${isoTgl}T00:00:00Z`).toLocaleDateString("id-ID", { day: "numeric", month: "short", timeZone: "UTC" }) : "";
@@ -131,6 +131,8 @@ export default function DetailKelasRaporPage({ params }) {
         </Card>
       )}
 
+      <MingguanKelas S={S} murid={murid} />
+
       <Card>
         <p className="border-b border-border px-4 py-3 font-semibold">Catatan harian terbaru</p>
         {jurnal.length === 0 ? (
@@ -143,6 +145,35 @@ export default function DetailKelasRaporPage({ params }) {
                   {tgl(j.tanggal)} · {(j.anakIds || []).map(nama).join(", ") || "kelas"}
                 </p>
                 <p>{j.isi}</p>
+                {j.media?.some((m) => m.driveId) && (
+                  <div className="flex flex-wrap gap-2">
+                    {j.media
+                      .filter((m) => m.driveId)
+                      .map((m) =>
+                        m.jenis === "foto" ? (
+                          <a key={m.id} href={`/api/admin/rapor/media?kelas=${kelasId}&file=${m.driveId}`} target="_blank" rel="noreferrer">
+                            {/* eslint-disable-next-line @next/next/no-img-element -- foto dari Drive lewat proxy admin */}
+                            <img
+                              src={`/api/admin/rapor/media?kelas=${kelasId}&file=${m.driveId}`}
+                              alt="Foto kegiatan"
+                              className="h-20 w-20 rounded-lg border border-border object-cover"
+                              loading="lazy"
+                            />
+                          </a>
+                        ) : (
+                          <a
+                            key={m.id}
+                            href={`https://drive.google.com/file/d/${m.driveId}/view`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex h-20 w-20 items-center justify-center rounded-lg border border-border text-xs font-semibold text-primary"
+                          >
+                            ▶ Video
+                          </a>
+                        ),
+                      )}
+                  </div>
+                )}
                 {j.label?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {j.label.map((l, i) => {
@@ -162,4 +193,88 @@ export default function DetailKelasRaporPage({ params }) {
       </Card>
     </div>
   );
+}
+
+// Rencana PPM per minggu, kesesuaian harian, dan laporan aktivitas mingguan.
+function MingguanKelas({ S, murid }) {
+  const minggu = Object.keys({ ...(S.minggu || {}), ...(S.laporan || {}) }).sort().reverse();
+  const [pilih, setPilih] = useState(null);
+  const senin = pilih || minggu[0];
+  if (!senin) return null;
+  const r = S.minggu?.[senin] || {};
+  const lap = S.laporan?.[senin];
+  const hari = Object.entries(S.evaluasi || {})
+    .filter(([t]) => t >= senin && t <= tambah(senin, 6))
+    .sort(([a], [b]) => a.localeCompare(b));
+  return (
+    <Card className="flex flex-col gap-3 p-4 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-semibold">PPM & laporan mingguan</p>
+        <select value={senin} onChange={(e) => setPilih(e.target.value)} className="rounded-lg border border-border bg-surface px-2 py-1 text-sm">
+          {minggu.map((m) => (
+            <option key={m} value={m}>
+              Minggu {tgl(m)} – {tgl(tambah(m, 4))}
+            </option>
+          ))}
+        </select>
+      </div>
+      {r.tp?.length || r.kegiatan?.length ? (
+        <div className="rounded-xl border border-border p-3">
+          <p className="font-semibold">
+            Rencana: {[r.tema, r.subTema].filter(Boolean).join(" · ") || "-"}
+          </p>
+          {r.dpl?.length > 0 && <p className="text-xs text-muted">DPL: {r.dpl.map((i) => DIMENSI[i]).join(", ")}</p>}
+          <div className="mt-1 flex flex-wrap gap-1">
+            {(r.tp || []).map((t, i) => {
+              const lk = LINGKUP_BY_ID[t.lingkup_id];
+              return lk ? (
+                <span key={i} title={lk.tp[t.level - 1]} className="rounded-md bg-primary-soft px-1.5 py-0.5 text-[11px] font-semibold text-primary">
+                  {lk.sub} {lk.nama} · TP{t.level}
+                </span>
+              ) : null;
+            })}
+          </div>
+          {r.kegiatan?.length > 0 && <p className="mt-1 text-xs text-muted">{r.kegiatan.length} kegiatan · {r.pemantik?.length || 0} pertanyaan pemantik</p>}
+        </div>
+      ) : (
+        <p className="text-danger">Belum ada PPM untuk minggu ini.</p>
+      )}
+      {hari.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {hari.map(([t, e]) => (
+            <span key={t} title={e.ringkasan} className={`rounded-lg px-2 py-1 text-xs font-semibold ${e.skor >= 75 ? "bg-primary-soft text-primary" : e.skor >= 50 ? "bg-accent-soft text-accent" : "bg-danger-soft text-danger"}`}>
+              {tgl(t)}: {e.skor}%
+            </span>
+          ))}
+        </div>
+      )}
+      {lap ? (
+        <div className="flex flex-col gap-2 rounded-xl border border-border p-3">
+          <p className="font-semibold">
+            Laporan Aktivitas Mingguan · kesesuaian {lap.kesesuaian}%
+          </p>
+          <p>{lap.ringkasan}</p>
+          {lap.saran?.length > 0 && (
+            <ul className="list-disc pl-5 text-xs">
+              {lap.saran.map((x, i) => (
+                <li key={i}>{x}</li>
+              ))}
+            </ul>
+          )}
+          <p className="rounded-lg bg-primary-soft p-2 text-xs">
+            <b>Asesmen awal untuk minggu berikutnya:</b> {lap.asesmen_awal}
+          </p>
+          <p className="text-xs text-muted">{murid.length} murid di kelas.</p>
+        </div>
+      ) : (
+        <p className="text-xs text-muted">Laporan mingguan belum disusun guru.</p>
+      )}
+    </Card>
+  );
+}
+
+function tambah(isoTgl, n) {
+  const d = new Date(`${isoTgl}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
 }

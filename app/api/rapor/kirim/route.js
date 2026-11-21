@@ -75,6 +75,22 @@ export async function POST(request) {
       const { error: e3 } = await supabase.from("rapor_jurnal").insert(jurnalRows.slice(i, i + 500));
       if (e3) throw e3;
     }
+    // Rencana mingguan (PPM): catat waktu PERTAMA kali masuk server (untuk tepat/terlambat).
+    const { data: rencanaLama } = await supabase.from("rapor_rencana").select("senin").eq("kelas_id", kelasId);
+    const sudahAda = new Set((rencanaLama || []).map((r) => r.senin));
+    const sekarang = new Date().toISOString();
+    for (const k of ["1", "2"]) {
+      for (const [senin, r] of Object.entries(sem[k].minggu || {})) {
+        if (!tanggalValid(senin) || !(r?.tp?.length || r?.kegiatan?.length)) continue;
+        const baris = { teacher_id: guru.id, school_id: guru.school_id, data: r, diperbarui: sekarang };
+        const { error: e4 } = sudahAda.has(senin)
+          ? await supabase.from("rapor_rencana").update(baris).eq("kelas_id", kelasId).eq("senin", senin)
+          : await supabase.from("rapor_rencana").insert({ ...baris, kelas_id: kelasId, senin, dikirim_pertama: sekarang });
+        if (e4) throw e4;
+        sudahAda.add(senin);
+      }
+    }
+
     await supabase
       .from("rapor_kiriman")
       .insert({ kelas_id: kelasId, teacher_id: guru.id, school_id: guru.school_id, jumlah_jurnal: jurnalRows.length });

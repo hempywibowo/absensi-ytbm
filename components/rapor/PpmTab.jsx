@@ -2,17 +2,21 @@
 
 import { useRef, useState } from "react";
 import { Card, Button, Badge } from "@/components/ui";
-import { CP, LINGKUP_BY_ID } from "@/lib/rapor-cp";
-import { docxKeHtml, idBaru, panggilApi, semAktif, tanggalIndo } from "@/lib/rapor-client";
+import { CP, DIMENSI, LINGKUP_BY_ID } from "@/lib/rapor-cp";
+import { batasPpm, docxKeHtml, idBaru, panggilApi, semAktif, seninDari, tambahHari, tanggalIndo } from "@/lib/rapor-client";
+import { kekuranganPpm } from "@/lib/rapor-rencana";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
 import KirimServer from "./KirimServer";
 
 const BARU = "__baru";
 const SIKLUS = { true: false, false: null, null: true }; // ✓ -> ✗ -> kosong -> ✓
 
-// Unggah dokumen PPM (Perencanaan Pembelajaran Mendalam) mingguan guru. AI membaca TP minggu itu
-// (dipetakan ke ATP resmi), ceklis capaian tiap anak, serta anekdot & hasil karya. Guru memeriksa
-// hasilnya, lalu disimpan sebagai bukti untuk Penilaian CP dan narasi rapor.
+// Unggah dokumen PPM (Perencanaan Pembelajaran Mendalam) mingguan guru.
+// - PPM rencana (diunggah Jumat untuk minggu depan): menjadi RENCANA minggu itu (DPL, CP/TP, tema,
+//   kegiatan, pertanyaan pemantik, asesmen awal) yang dipakai untuk menilai laporan harian.
+// - PPM yang sudah berisi asesmen (untuk mengejar rapor): ceklis tiap anak + anekdot/hasil karya
+//   juga disimpan sebagai bukti Penilaian CP.
+// Guru memeriksa hasil bacaan AI dulu sebelum disimpan.
 export default function PpmTab({ data, ubah, keTab }) {
   const S = semAktif(data);
   const fileRef = useRef(null);
@@ -127,6 +131,7 @@ export default function PpmTab({ data, ubah, keTab }) {
         ...s0.ppm.filter((p) => p.id !== sama?.id),
         {
           id: ppmId,
+          jenis: r.jenis,
           file: cur.file,
           minggu: r.minggu,
           tanggal: r.tanggal,
@@ -137,13 +142,35 @@ export default function PpmTab({ data, ubah, keTab }) {
         },
       ].sort((a, b) => (Number(a.minggu) || 0) - (Number(b.minggu) || 0));
 
+      // Rencana minggu itu (dipakai untuk menilai laporan harian & laporan mingguan).
+      const minggu = { ...(s0.minggu || {}) };
+      if (r.tanggal) {
+        minggu[seninDari(r.tanggal)] = {
+          ...(minggu[seninDari(r.tanggal)] || {}),
+          tema: r.tema,
+          subTema: r.sub_tema,
+          tp: r.tp.map(({ lingkup_id, level }) => ({ lingkup_id, level })),
+          dpl: r.dpl,
+          kegiatan: r.kegiatan_rinci,
+          pemantik: r.pemantik,
+          asesmenAwal: r.asesmen_awal,
+          sumber: "ppm",
+          file: cur.file,
+          ppmId,
+        };
+      }
+
       return {
         ...d,
         murid: [...d.murid, ...muridBaru],
-        sem: { ...d.sem, [d.kelas.semester]: { ...s0, ppm, hasilPpm, nilai, jurnal } },
+        sem: { ...d.sem, [d.kelas.semester]: { ...s0, ppm, hasilPpm, nilai, jurnal, minggu } },
       };
     });
-    setInfo(`PPM minggu ${r.minggu || "?"} tersimpan. Penilaian CP anak yang TP-nya muncul sudah diperbarui.`);
+    setInfo(
+      r.jenis === "rencana"
+        ? `Rencana minggu ${r.minggu || "?"} tersimpan. Jangan lupa tekan "Kirim ke Server" di bawah sebelum Jumat 23.59.`
+        : `PPM minggu ${r.minggu || "?"} tersimpan. Penilaian CP anak yang TP-nya muncul sudah diperbarui.`,
+    );
     setAntrian((q) => q.slice(1));
   }
 
@@ -234,6 +261,8 @@ export default function PpmTab({ data, ubah, keTab }) {
               {cur.r.sub_tema && ` · ${cur.r.sub_tema}`}
             </p>
 
+            <InfoRencana r={cur.r} S={S} setR={setR} />
+
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold text-muted">Tujuan Pembelajaran minggu ini → ATP resmi</p>
               {cur.r.tp.map((t, i) => {
@@ -271,11 +300,12 @@ export default function PpmTab({ data, ubah, keTab }) {
               })}
             </div>
 
+            {cur.r.anak.length > 0 && (
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold text-muted">
                 Ceklis capaian tiap anak (ketuk untuk ubah: ✓ muncul → ✗ belum → kosong)
               </p>
-              {cur.r.anak.length === 0 && <p className="text-sm text-muted">Ceklis di dokumen ini belum diisi.</p>}
+
               {cur.r.anak.map((a, i) => (
                 <div key={i} className="flex flex-col gap-1.5 rounded-xl border border-border p-2.5">
                   <div className="flex items-center gap-2">
@@ -322,6 +352,7 @@ export default function PpmTab({ data, ubah, keTab }) {
                 </div>
               ))}
             </div>
+            )}
 
             {cur.r.bukti.length > 0 && (
               <div className="flex flex-col gap-2">
@@ -364,7 +395,7 @@ export default function PpmTab({ data, ubah, keTab }) {
                 Lewati
               </Button>
               <Button type="button" onClick={simpan}>
-                Simpan PPM
+                {cur.r.jenis === "rencana" ? "Simpan rencana" : "Simpan PPM"}
               </Button>
             </div>
           </div>
@@ -408,5 +439,103 @@ export default function PpmTab({ data, ubah, keTab }) {
         Lihat Penilaian CP →
       </Button>
     </>
+  );
+}
+
+// Info PPM sebagai rencana: minggu tujuan, ketepatan waktu, kelengkapan (DPL, CP/TP, tema, kegiatan,
+// pemantik), DPL yang dicentang, daftar kegiatan & pemantik, dan asesmen awal.
+function InfoRencana({ r, S, setR }) {
+  const senin = r.tanggal ? seninDari(r.tanggal) : "";
+  const kurang = kekuranganPpm({
+    tema: r.tema,
+    dpl: r.dpl,
+    tp: r.tp,
+    kegiatan: r.kegiatan_rinci,
+    pemantik: r.pemantik,
+  });
+  const batas = senin ? batasPpm(senin) : null;
+  const telat = batas && new Date() > batas;
+  const saranLalu = senin ? S.laporan?.[tambahHari(senin, -7)]?.asesmen_awal : "";
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone={r.jenis === "rencana" ? "neutral" : "warning"}>
+          {r.jenis === "rencana" ? "PPM rencana" : "PPM berisi asesmen"}
+        </Badge>
+        {senin && (
+          <span className="text-xs text-muted">
+            untuk minggu {tanggalIndo(senin)} – {tanggalIndo(tambahHari(senin, 4))}
+          </span>
+        )}
+      </div>
+      {r.jenis === "rencana" && batas && (
+        <Pesan tone={telat ? "warning" : "info"}>
+          Batas unggah: Jumat {tanggalIndo(tambahHari(senin, -3))} pukul 23.59 WIB.{" "}
+          {telat ? "Sudah lewat batas — akan tercatat terlambat." : "Masih tepat waktu bila dikirim sebelum batas."}
+        </Pesan>
+      )}
+      {kurang.length > 0 ? (
+        <Pesan tone="danger">PPM belum lengkap: {kurang.join(", ")} belum ada. Lengkapi di dokumen Word lalu unggah ulang.</Pesan>
+      ) : (
+        <Pesan>✓ PPM lengkap: DPL, CP & TP, tema, kegiatan, dan pertanyaan pemantik.</Pesan>
+      )}
+
+      <div className="flex flex-col gap-1.5">
+        <p className="text-xs font-semibold text-muted">Dimensi Profil Lulusan (ketuk untuk ubah)</p>
+        <div className="flex flex-wrap gap-1.5">
+          {DIMENSI.map((d, i) => {
+            const on = r.dpl.includes(i);
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setR((x) => ({ ...x, dpl: on ? x.dpl.filter((v) => v !== i) : [...x.dpl, i].sort() }))}
+                className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${on ? "border-primary bg-primary-soft text-primary" : "border-border text-muted"}`}
+              >
+                {on ? "✓ " : ""}
+                {d}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {r.kegiatan_rinci.length > 0 && (
+        <details className="rounded-xl border border-border p-3 text-sm">
+          <summary className="cursor-pointer text-xs font-semibold text-muted">Kegiatan direncanakan ({r.kegiatan_rinci.length})</summary>
+          <ol className="mt-2 list-decimal pl-5">
+            {r.kegiatan_rinci.map((k, i) => (
+              <li key={i} className="mb-1">
+                <span className="text-xs font-semibold text-muted">[{k.fase}]</span> {k.teks}
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+      {r.pemantik.length > 0 && (
+        <details className="rounded-xl border border-border p-3 text-sm">
+          <summary className="cursor-pointer text-xs font-semibold text-muted">Pertanyaan pemantik ({r.pemantik.length})</summary>
+          <ul className="mt-2 list-disc pl-5">
+            {r.pemantik.map((q, i) => (
+              <li key={i}>{q}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {(r.asesmen_awal || saranLalu) && (
+        <div className="rounded-xl bg-primary-soft p-3 text-sm">
+          {r.asesmen_awal && (
+            <p>
+              <b>Asesmen awal di PPM:</b> {r.asesmen_awal}
+            </p>
+          )}
+          {saranLalu && (
+            <p className="mt-1 text-xs text-muted">
+              <b>Saran asesmen awal dari laporan minggu lalu:</b> {saranLalu}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
