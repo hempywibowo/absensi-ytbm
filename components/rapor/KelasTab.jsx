@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card, Button } from "@/components/ui";
-import { KELOMPOK, dataKosong, unduhCadangan, ambilKode, simpanKode } from "@/lib/rapor-client";
+import { KELOMPOK, dataKosong, rapikanData, unduhCadangan, ambilKode, simpanKode } from "@/lib/rapor-client";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
 
 export default function KelasTab({ data, ubah, keTab }) {
@@ -41,8 +41,7 @@ export default function KelasTab({ data, ubah, keTab }) {
       const d = JSON.parse(await file.text());
       if (!d || !d.kelas || !Array.isArray(d.murid)) throw new Error();
       if (!confirm("Data rapor di perangkat ini akan DIGANTI dengan isi file cadangan. Lanjutkan?")) return;
-      const kosong = dataKosong();
-      ubah(() => ({ ...kosong, ...d, kelas: { ...kosong.kelas, ...d.kelas } }));
+      ubah(() => rapikanData(d));
       setInfo("Cadangan berhasil dipulihkan.");
     } catch {
       setInfo("File cadangan tidak valid.");
@@ -95,6 +94,10 @@ export default function KelasTab({ data, ubah, keTab }) {
             </Ruas>
           </div>
 
+          <Ruas label="NPSN sekolah (opsional)">
+            <input className={kelasInput} inputMode="numeric" value={k.npsn} onChange={(e) => set("npsn", e.target.value)} />
+          </Ruas>
+
           <Ruas label="Guru kelas" bantu={guruSekolah.length ? "Pilih dari daftar atau ketik nama." : undefined}>
             <input
               className={kelasInput}
@@ -109,9 +112,23 @@ export default function KelasTab({ data, ubah, keTab }) {
             </datalist>
           </Ruas>
 
-          <Ruas label="Kepala sekolah">
-            <input className={kelasInput} value={k.kepsek} onChange={(e) => set("kepsek", e.target.value)} />
-          </Ruas>
+          <div className="grid grid-cols-2 gap-3">
+            <Ruas label="NIP/NUPTK guru (opsional)">
+              <input className={kelasInput} value={k.nipGuru} onChange={(e) => set("nipGuru", e.target.value)} />
+            </Ruas>
+            <Ruas label="Guru pendamping (opsional)">
+              <input className={kelasInput} list="daftar-guru-rapor" value={k.pendamping} onChange={(e) => set("pendamping", e.target.value)} />
+            </Ruas>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Ruas label="Kepala sekolah">
+              <input className={kelasInput} value={k.kepsek} onChange={(e) => set("kepsek", e.target.value)} />
+            </Ruas>
+            <Ruas label="NIP/NUPTK kepsek (opsional)">
+              <input className={kelasInput} value={k.nipKepsek} onChange={(e) => set("nipKepsek", e.target.value)} />
+            </Ruas>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <Ruas label="Tahun ajaran">

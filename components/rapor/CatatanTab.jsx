@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { Card, Button, Badge } from "@/components/ui";
-import { idBaru, panggilApi, hariIniISO, tanggalIndo } from "@/lib/rapor-client";
+import { idBaru, panggilApi, hariIniISO, tanggalIndo, semAktif, ubahSem } from "@/lib/rapor-client";
 import FotoPicker from "./FotoPicker";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
 
 export default function CatatanTab({ data, ubah, keTab }) {
+  const S = semAktif(data);
   const [anakId, setAnakId] = useState(data.murid[0]?.id || "");
   const [mode, setMode] = useState(null); // null | "ketik" | "foto"
   const [tanggal, setTanggal] = useState(hariIniISO);
@@ -32,12 +33,12 @@ export default function CatatanTab({ data, ubah, keTab }) {
   }
 
   const anak = data.murid.find((m) => m.id === anakId) || data.murid[0];
-  const daftarCatatan = [...(data.catatan[anak.id] || [])].sort((a, b) =>
+  const daftarCatatan = [...(S.catatan[anak.id] || [])].sort((a, b) =>
     (b.tanggal || "").localeCompare(a.tanggal || ""),
   );
 
   function tambahCatatan(list) {
-    ubah((d) => {
+    ubahSem(ubah, (d) => {
       const catatan = { ...d.catatan };
       for (const c of list) {
         catatan[c.anakId] = [
@@ -101,11 +102,11 @@ export default function CatatanTab({ data, ubah, keTab }) {
 
   function hapusCatatan(id) {
     if (!confirm("Hapus catatan ini?")) return;
-    ubah((d) => ({ ...d, catatan: { ...d.catatan, [anak.id]: (d.catatan[anak.id] || []).filter((c) => c.id !== id) } }));
+    ubahSem(ubah, (d) => ({ ...d, catatan: { ...d.catatan, [anak.id]: (d.catatan[anak.id] || []).filter((c) => c.id !== id) } }));
   }
 
   function simpanEdit(id) {
-    ubah((d) => ({
+    ubahSem(ubah, (d) => ({
       ...d,
       catatan: {
         ...d.catatan,
@@ -124,7 +125,7 @@ export default function CatatanTab({ data, ubah, keTab }) {
             <select className={kelasInput} value={anak.id} onChange={(e) => setAnakId(e.target.value)}>
               {data.murid.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.nama} ({(data.catatan[m.id] || []).length} catatan)
+                  {m.nama} ({(S.catatan[m.id] || []).length} catatan)
                 </option>
               ))}
             </select>
@@ -341,8 +342,8 @@ export default function CatatanTab({ data, ubah, keTab }) {
         )}
       </Card>
 
-      <Button type="button" variant="outline" onClick={() => keTab("rapor")}>
-        Lanjut susun rapor →
+      <Button type="button" variant="outline" onClick={() => keTab("nilai")}>
+        Lanjut penilaian CP →
       </Button>
     </>
   );

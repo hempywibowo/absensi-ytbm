@@ -96,26 +96,31 @@ project-nya, lalu Deploy.
 
 ## Fitur Rapor Anak (`/rapor`)
 
-Modul terpisah untuk menyusun rapor naratif PAUD/TK (Kurikulum Merdeka, Fase Fondasi). Fitur ini
-**tidak mengubah apa pun di absensi**: tidak ada tabel baru, tidak menulis ke database. Data rapor
-(kelas, murid, catatan, narasi) disimpan di perangkat guru (localStorage), plus fitur unduh/pulihkan
-cadangan. Server hanya membaca daftar sekolah & nama guru untuk dropdown.
+Modul terpisah untuk menyusun rapor PAUD/TK Kurikulum Merdeka **Fase Fondasi**, mengacu CP
+**SK BSKAP 046/H/KR/2025** (3 elemen, 14 sub-elemen) dan ATP dari **Panduan CP Fase Fondasi Edisi
+Revisi 2025** (41 lingkup, 139 TP — data di `lib/rapor-cp.js`). Fitur ini **tidak mengubah apa pun di
+absensi**: tidak ada tabel baru, tidak menulis ke database. Data rapor disimpan di perangkat guru
+(localStorage), per semester, plus unduh/pulihkan cadangan.
 
-Alur guru:
-1. **Kelas** — pilih sekolah (dropdown), isi nama kelas, kelompok usia, guru, kepala sekolah, semester.
-2. **Murid** — ketik satu-satu, tempel daftar nama, atau **foto daftar absen** (dibaca AI, diperiksa
-   dulu sebelum disimpan).
-3. **Catatan Harian** — ketik catatan per anak, atau **foto catatan/laporan harian guru** (satu anak
-   atau banyak anak sekaligus; nama otomatis dicocokkan ke daftar murid, bisa dikoreksi).
-4. **Rapor** — susun narasi per elemen dari catatan (AI), sunting, isi TB/BB & kehadiran, lalu
-   cetak / simpan PDF (A4).
+Alur guru (tab di `/rapor`):
+1. **Kelas** — sekolah (dropdown), nama kelas, kelompok usia, guru & pendamping, kepala sekolah, NIP,
+   semester (tombol Sem 1/Sem 2 di atas).
+2. **Murid** — ketik (data lengkap: NIS/NISN, TTL, agama, orang tua), tempel daftar, atau foto daftar absen.
+3. **PPM** — unggah file Word **PPM mingguan** guru. AI membaca TP minggu itu (dipetakan ke ATP resmi),
+   ceklis tiap anak, catatan anekdot, dan hasil karya. Guru memeriksa, lalu disimpan: ceklis jadi
+   bukti & menaikkan Penilaian CP, anekdot masuk ke catatan anak.
+4. **Catatan** — catatan harian tambahan (ketik / foto catatan tulisan tangan).
+5. **Penilaian CP** — per anak, semua 14 sub-elemen: tiap lingkup pilih sampai TP mana anak sudah sampai
+   (TP berikutnya otomatis jadi "sedang dikembangkan"), bukti per sub-elemen, indikator x/14, usulan
+   otomatis dari catatan, dan kokurikuler (tema + 8 Dimensi Profil Lulusan).
+6. **Rapor** — narasi per elemen + kokurikuler + refleksi disusun AI dari penilaian/PPM/catatan, bisa
+   disunting, lalu cetak/PDF A4 dengan lampiran capaian TP per sub-elemen.
 
 Env tambahan (di Vercel juga):
-- `ANTHROPIC_API_KEY` — wajib untuk baca foto & narasi otomatis (fitur ketik manual tetap jalan tanpa ini).
-- `RAPOR_KODE_AKSES` — opsional tapi disarankan. Kalau diisi, guru harus memasukkan kode yang sama di
-  tab Kelas sebelum memakai fitur AI, supaya orang luar tidak bisa memakai kuota AI lewat URL publik.
+- `ANTHROPIC_API_KEY` — wajib untuk fitur AI (baca foto/PPM, usulan penilaian, narasi). Isian manual tetap jalan tanpa ini.
+- `RAPOR_KODE_AKSES` — opsional tapi disarankan, supaya orang luar tidak bisa memakai kuota AI lewat URL publik.
 
-Foto yang dikirim ke AI tidak disimpan di server; hanya teks hasil bacaannya yang disimpan di perangkat guru.
+File/foto yang dikirim ke AI tidak disimpan di server; hanya hasil bacaannya yang disimpan di perangkat guru.
 
 ## Catatan penting
 

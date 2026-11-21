@@ -2,11 +2,23 @@
 
 import { useState } from "react";
 import { Card, Button, Badge } from "@/components/ui";
-import { idBaru, panggilApi } from "@/lib/rapor-client";
+import { idBaru, panggilApi, AGAMA, tanggalIndo } from "@/lib/rapor-client";
 import FotoPicker from "./FotoPicker";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
 
-const kosong = { nama: "", panggilan: "", jk: "", nisn: "" };
+const kosong = {
+  nama: "",
+  panggilan: "",
+  jk: "",
+  nisn: "",
+  nis: "",
+  tempatLahir: "",
+  tanggalLahir: "",
+  agama: "",
+  ayah: "",
+  ibu: "",
+};
+const FIELD = Object.keys(kosong);
 const normal = (s) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
 export default function MuridTab({ data, ubah, keTab }) {
@@ -29,11 +41,11 @@ export default function MuridTab({ data, ubah, keTab }) {
       if (!nama || lihat.has(normal(nama))) continue;
       lihat.add(normal(nama));
       bersih.push({
+        ...kosong,
+        ...Object.fromEntries(FIELD.map((f) => [f, String(m[f] ?? "").trim()])),
         id: idBaru(),
         nama,
-        panggilan: (m.panggilan || "").trim(),
         jk: m.jk || m.jenis_kelamin || "",
-        nisn: (m.nisn || "").trim(),
       });
     }
     ubah((d) => ({ ...d, murid: [...d.murid, ...bersih] }));
@@ -57,19 +69,23 @@ export default function MuridTab({ data, ubah, keTab }) {
   }
 
   function hapus(m) {
-    const n = (data.catatan[m.id] || []).length;
-    if (!confirm(`Hapus ${m.nama}?${n ? ` ${n} catatan hariannya ikut terhapus.` : ""}`)) return;
+    if (!confirm(`Hapus ${m.nama}? Catatan, penilaian, dan rapornya (semester 1 & 2) ikut terhapus.`)) return;
     ubah((d) => {
-      const catatan = { ...d.catatan };
-      const rapor = { ...d.rapor };
-      delete catatan[m.id];
-      delete rapor[m.id];
-      return { ...d, murid: d.murid.filter((x) => x.id !== m.id), catatan, rapor };
+      const sem = {};
+      for (const [k, s] of Object.entries(d.sem)) {
+        const t = { ...s };
+        for (const f of ["catatan", "nilai", "bukti", "kokuAnak", "rapor"]) {
+          t[f] = { ...s[f] };
+          delete t[f][m.id];
+        }
+        sem[k] = t;
+      }
+      return { ...d, murid: d.murid.filter((x) => x.id !== m.id), sem };
     });
   }
 
   function mulaiEdit(m) {
-    setForm({ nama: m.nama, panggilan: m.panggilan || "", jk: m.jk || "", nisn: m.nisn || "" });
+    setForm(Object.fromEntries(FIELD.map((f) => [f, m[f] || ""])));
     setEditId(m.id);
     setMode("ketik");
   }
@@ -152,28 +168,50 @@ export default function MuridTab({ data, ubah, keTab }) {
                   autoFocus
                 />
               </Ruas>
-              <div className="grid grid-cols-3 gap-2">
-                <Ruas label="Panggilan">
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  ["panggilan", "Panggilan"],
+                  ["nis", "NIS"],
+                  ["nisn", "NISN"],
+                  ["tempatLahir", "Tempat lahir"],
+                ].map(([f, label]) => (
+                  <Ruas key={f} label={label}>
+                    <input
+                      className={kelasInput}
+                      inputMode={f.startsWith("nis") ? "numeric" : undefined}
+                      value={form[f]}
+                      onChange={(e) => setForm({ ...form, [f]: e.target.value })}
+                    />
+                  </Ruas>
+                ))}
+                <Ruas label="Tanggal lahir">
                   <input
+                    type="date"
                     className={kelasInput}
-                    value={form.panggilan}
-                    onChange={(e) => setForm({ ...form, panggilan: e.target.value })}
+                    value={form.tanggalLahir}
+                    onChange={(e) => setForm({ ...form, tanggalLahir: e.target.value })}
                   />
                 </Ruas>
-                <Ruas label="L/P">
+                <Ruas label="Jenis kelamin">
                   <select className={kelasInput} value={form.jk} onChange={(e) => setForm({ ...form, jk: e.target.value })}>
                     <option value="">-</option>
-                    <option value="L">L</option>
-                    <option value="P">P</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
                   </select>
                 </Ruas>
-                <Ruas label="NISN">
-                  <input
-                    className={kelasInput}
-                    inputMode="numeric"
-                    value={form.nisn}
-                    onChange={(e) => setForm({ ...form, nisn: e.target.value })}
-                  />
+                <Ruas label="Agama">
+                  <select className={kelasInput} value={form.agama} onChange={(e) => setForm({ ...form, agama: e.target.value })}>
+                    <option value="">-</option>
+                    {AGAMA.map((a) => (
+                      <option key={a}>{a}</option>
+                    ))}
+                  </select>
+                </Ruas>
+                <Ruas label="Nama ayah">
+                  <input className={kelasInput} value={form.ayah} onChange={(e) => setForm({ ...form, ayah: e.target.value })} />
+                </Ruas>
+                <Ruas label="Nama ibu">
+                  <input className={kelasInput} value={form.ibu} onChange={(e) => setForm({ ...form, ibu: e.target.value })} />
                 </Ruas>
               </div>
               <Button type="submit" disabled={!form.nama.trim()}>
@@ -254,11 +292,18 @@ export default function MuridTab({ data, ubah, keTab }) {
             {data.murid.map((m, i) => (
               <li key={m.id} className="flex items-center gap-3 px-4 py-3">
                 <span className="w-6 text-right text-sm text-muted">{i + 1}.</span>
+                {!(m.tanggalLahir && m.jk && m.agama) && <span title="Data belum lengkap" className="text-accent">●</span>}
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{m.nama}</p>
                   <p className="text-xs text-muted">
-                    {[m.panggilan && `"${m.panggilan}"`, m.jk, m.nisn && `NISN ${m.nisn}`].filter(Boolean).join(" · ") ||
-                      "—"}
+                    {[
+                      m.panggilan && `"${m.panggilan}"`,
+                      m.jk,
+                      (m.tempatLahir || m.tanggalLahir) && [m.tempatLahir, tanggalIndo(m.tanggalLahir)].filter(Boolean).join(", "),
+                      m.nisn && `NISN ${m.nisn}`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") || "—"}
                   </p>
                 </div>
                 <button type="button" className="text-sm font-semibold text-primary" onClick={() => mulaiEdit(m)}>

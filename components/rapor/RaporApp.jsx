@@ -6,12 +6,16 @@ import { muatData, simpanData } from "@/lib/rapor-client";
 import KelasTab from "./KelasTab";
 import MuridTab from "./MuridTab";
 import CatatanTab from "./CatatanTab";
+import PenilaianTab from "./PenilaianTab";
+import PpmTab from "./PpmTab";
 import RaporTab from "./RaporTab";
 
 const TAB = [
   { id: "kelas", label: "Kelas", ikon: "🏫" },
   { id: "murid", label: "Murid", ikon: "👧" },
-  { id: "catatan", label: "Catatan Harian", ikon: "📝" },
+  { id: "ppm", label: "PPM", ikon: "📂" },
+  { id: "catatan", label: "Catatan", ikon: "📝" },
+  { id: "nilai", label: "Penilaian CP", ikon: "✅" },
   { id: "rapor", label: "Rapor", ikon: "📄" },
 ];
 
@@ -44,21 +48,33 @@ export default function RaporApp() {
               {k.sekolahNama ? `${k.sekolahNama}${k.namaKelas ? ` · ${k.namaKelas}` : ""}` : "Atur data kelas dulu"}
             </p>
           </div>
-          <span className="shrink-0 rounded-lg bg-white/15 px-2 py-1 text-xs font-semibold">
-            Sem {k.semester} · {k.ta}
-          </span>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <div className="flex rounded-lg bg-white/15 p-0.5 text-xs font-bold">
+              {["1", "2"].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => ubah((d) => ({ ...d, kelas: { ...d.kelas, semester: s } }))}
+                  className={`rounded-md px-2.5 py-1 ${k.semester === s ? "bg-surface text-primary" : "opacity-80"}`}
+                >
+                  Sem {s}
+                </button>
+              ))}
+            </div>
+            <span className="text-[11px] opacity-80">TA {k.ta}</span>
+          </div>
         </div>
-        <nav className="mt-3 grid grid-cols-4 gap-1 rounded-xl bg-white/10 p-1">
+        <nav className="mt-3 grid grid-cols-6 gap-1 rounded-xl bg-white/10 p-1">
           {TAB.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className={`rounded-lg px-1 py-2 text-xs font-semibold leading-tight ${
+              className={`rounded-lg px-0.5 py-2 text-[11px] font-semibold leading-tight ${
                 tab === t.id ? "bg-surface text-primary" : "opacity-85"
               }`}
             >
-              <span className="block text-base">{t.ikon}</span>
+              <span className="block text-base leading-tight">{t.ikon}</span>
               {t.label}
             </button>
           ))}
@@ -75,6 +91,8 @@ export default function RaporApp() {
         {tab === "kelas" && <KelasTab {...props} />}
         {tab === "murid" && <MuridTab {...props} />}
         {tab === "catatan" && <CatatanTab {...props} />}
+        {tab === "ppm" && <PpmTab {...props} />}
+        {tab === "nilai" && <PenilaianTab {...props} />}
         {tab === "rapor" && <RaporTab {...props} />}
       </main>
 
