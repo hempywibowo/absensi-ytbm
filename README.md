@@ -128,8 +128,8 @@ rata-rata bukti CP, PIN guru, dan detail kelas (rencana, laporan, foto kegiatan,
    - `RAPOR_KODE_AKSES` — opsional, disarankan.
    - Google Drive (foto/video): `GOOGLE_DRIVE_FOLDER_ID` (id folder "Rapor YTBM") **dan salah satu**:
      - Akun Google yayasan (Gmail): `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`,
-       `GOOGLE_DRIVE_REFRESH_TOKEN` (OAuth, scope `drive.file`; publikasikan OAuth app ke "In production"
-       supaya refresh token tidak kedaluwarsa tiap 7 hari).
+       `GOOGLE_DRIVE_REFRESH_TOKEN` (OAuth, scope `https://www.googleapis.com/auth/drive`; publikasikan
+       OAuth consent screen ke "In production" supaya refresh token tidak kedaluwarsa tiap 7 hari).
      - Google Workspace: service account Sheets (`GOOGLE_SHEETS_CLIENT_EMAIL`/`GOOGLE_SHEETS_PRIVATE_KEY`)
        dijadikan anggota (Content manager) sebuah **Shared Drive**, dan folder induk ada di Shared Drive itu.
    Tanpa Drive, foto/video tetap tersimpan di perangkat guru; data lain tetap terkirim.
