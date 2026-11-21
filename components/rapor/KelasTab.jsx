@@ -6,7 +6,7 @@ import { KELOMPOK, dataKosong, rapikanData, unduhCadangan, ambilKode, simpanKode
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
 import AmbilServer from "./AmbilServer";
 
-export default function KelasTab({ data, ubah, keTab }) {
+export default function KelasTab({ data, ubah, keTab, tema, setTema }) {
   const k = data.kelas;
   const [sekolah, setSekolah] = useState(null);
   const [galatSekolah, setGalatSekolah] = useState("");
@@ -181,6 +181,28 @@ export default function KelasTab({ data, ubah, keTab }) {
               Lanjut isi data murid →
             </Button>
           )}
+        </div>
+      </Card>
+
+      <Card>
+        <Judul>🎨 Tema tampilan</Judul>
+        <div className="grid grid-cols-4 gap-2 p-4">
+          {[
+            ["pelangi", "🌈 Pelangi", "linear-gradient(115deg,#ff6f91,#9b5de5,#00a8e8)"],
+            ["laut", "🌊 Laut", "linear-gradient(115deg,#48cae4,#0096c7,#3a0ca3)"],
+            ["bunga", "🌸 Bunga", "linear-gradient(115deg,#ffb703,#fb6f92,#c8326e)"],
+            ["hutan", "🌳 Hutan", "linear-gradient(115deg,#f9c74f,#52b788,#1b7a4a)"],
+          ].map(([id, label, warna]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTema?.(id)}
+              className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2 text-xs font-bold ${tema === id ? "border-primary" : "border-transparent"}`}
+            >
+              <span className="h-9 w-full rounded-lg" style={{ background: warna }} />
+              {label}
+            </button>
+          ))}
         </div>
       </Card>
 
