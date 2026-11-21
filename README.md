@@ -96,26 +96,43 @@ project-nya, lalu Deploy.
 
 ## Fitur Rapor Anak (`/rapor`)
 
-Modul terpisah untuk menyusun rapor naratif PAUD/TK (Kurikulum Merdeka, Fase Fondasi). Fitur ini
-**tidak mengubah apa pun di absensi**: tidak ada tabel baru, tidak menulis ke database. Data rapor
-(kelas, murid, catatan, narasi) disimpan di perangkat guru (localStorage), plus fitur unduh/pulihkan
-cadangan. Server hanya membaca daftar sekolah & nama guru untuk dropdown.
+Modul pembelajaran & rapor PAUD/TK Kurikulum Merdeka **Fase Fondasi**, mengacu CP **SK BSKAP
+046/H/KR/2025** (3 elemen, 14 sub-elemen) dan ATP **Panduan CP Fase Fondasi Edisi Revisi 2025**
+(41 lingkup, 139 TP — `lib/rapor-cp.js`). Tidak mengubah tabel/fitur absensi.
 
-Alur guru:
-1. **Kelas** — pilih sekolah (dropdown), isi nama kelas, kelompok usia, guru, kepala sekolah, semester.
-2. **Murid** — ketik satu-satu, tempel daftar nama, atau **foto daftar absen** (dibaca AI, diperiksa
-   dulu sebelum disimpan).
-3. **Catatan Harian** — ketik catatan per anak, atau **foto catatan/laporan harian guru** (satu anak
-   atau banyak anak sekaligus; nama otomatis dicocokkan ke daftar murid, bisa dikoreksi).
-4. **Rapor** — susun narasi per elemen dari catatan (AI), sunting, isi TB/BB & kehadiran, lalu
-   cetak / simpan PDF (A4).
+### Alur mingguan guru
+1. **Jumat (paling lambat 23.59 WIB): unggah PPM minggu depan** (tab PPM, file Word). AI membaca DPL,
+   CP/TP (dipetakan ke ATP resmi), tema, kegiatan, pertanyaan pemantik, dan asesmen awal; aplikasi
+   mengecek kelengkapannya. PPM **wajib** sebelum minggu berjalan — dashboard menandai tepat waktu/terlambat.
+2. **Senin–Jumat: laporan harian** (tab Harian): catatan kegiatan + foto/video (opsional), label anak &
+   CP/TP otomatis dari AI, ceklis TP minggu ini, review satu per satu setelah kelas. Setelah semua direview,
+   **kesesuaian hari itu dengan PPM dinilai otomatis** (skor %, kegiatan terlaksana/belum, TP teramati).
+3. **Jumat siang: Laporan Aktivitas Mingguan** — rencana vs pelaksanaan, TP & anak yang belum teramati,
+   kegiatan di luar rencana, saran, dan paragraf **Asesmen Awal** siap tempel untuk PPM minggu depan.
+4. **Akhir semester**: Penilaian CP (naik otomatis dari bukti) → narasi rapor → cetak/PDF.
 
-Env tambahan (di Vercel juga):
-- `ANTHROPIC_API_KEY` — wajib untuk baca foto & narasi otomatis (fitur ketik manual tetap jalan tanpa ini).
-- `RAPOR_KODE_AKSES` — opsional tapi disarankan. Kalau diisi, guru harus memasukkan kode yang sama di
-  tab Kelas sebelum memakai fitur AI, supaya orang luar tidak bisa memakai kuota AI lewat URL publik.
+PPM yang sudah berisi asesmen (☑/☐, anekdot) tetap bisa diunggah untuk mengejar rapor semester berjalan.
 
-Foto yang dikirim ke AI tidak disimpan di server; hanya teks hasil bacaannya yang disimpan di perangkat guru.
+**Data**: dikerjakan di perangkat guru (draf, bisa diubah). Tombol **Kirim ke Server** (PIN guru) mengunggah
+foto/video ke Google Drive yayasan lalu menyalin data yang sudah direview ke tabel `rapor_*`.
+
+**Dashboard** `/admin/rapor` (kepsek: sekolahnya; admin: semua): status PPM minggu ini & minggu depan
+(tepat waktu/terlambat/belum, kelengkapan), laporan harian per hari + skor kesesuaian, laporan mingguan,
+rata-rata bukti CP, PIN guru, dan detail kelas (rencana, laporan, foto kegiatan, bukti CP per anak, narasi).
+
+### Setup sekali
+1. Jalankan [`supabase/rapor.sql`](supabase/rapor.sql) di Supabase SQL Editor.
+2. Buat PIN tiap guru di dashboard Rapor.
+3. Env di Vercel:
+   - `ANTHROPIC_API_KEY` — wajib untuk fitur AI.
+   - `RAPOR_KODE_AKSES` — opsional, disarankan.
+   - Google Drive (foto/video): `GOOGLE_DRIVE_FOLDER_ID` (id folder "Rapor YTBM") **dan salah satu**:
+     - Akun Google yayasan (Gmail): `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`,
+       `GOOGLE_DRIVE_REFRESH_TOKEN` (OAuth, scope `https://www.googleapis.com/auth/drive`; publikasikan
+       OAuth consent screen ke "In production" supaya refresh token tidak kedaluwarsa tiap 7 hari).
+     - Google Workspace: service account Sheets (`GOOGLE_SHEETS_CLIENT_EMAIL`/`GOOGLE_SHEETS_PRIVATE_KEY`)
+       dijadikan anggota (Content manager) sebuah **Shared Drive**, dan folder induk ada di Shared Drive itu.
+   Tanpa Drive, foto/video tetap tersimpan di perangkat guru; data lain tetap terkirim.
 
 ## Catatan penting
 

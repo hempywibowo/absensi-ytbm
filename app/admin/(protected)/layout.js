@@ -40,6 +40,9 @@ export default async function AdminLayout({ children }) {
         <Link href="/admin/rekap" className="rounded-lg px-3 py-2 hover:bg-primary-soft">
           Rekap
         </Link>
+        <Link href="/admin/rapor" className="rounded-lg px-3 py-2 hover:bg-primary-soft">
+          Rapor
+        </Link>
         {admin.role === "admin" && (
           <Link href="/admin/approvals" className="rounded-lg px-3 py-2 hover:bg-primary-soft">
             Persetujuan Izin
