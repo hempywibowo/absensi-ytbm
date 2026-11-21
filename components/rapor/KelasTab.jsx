@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Card, Button } from "@/components/ui";
 import { KELOMPOK, dataKosong, rapikanData, unduhCadangan, ambilKode, simpanKode } from "@/lib/rapor-client";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
+import AmbilServer from "./AmbilServer";
 
 export default function KelasTab({ data, ubah, keTab }) {
   const k = data.kelas;
@@ -63,6 +64,12 @@ export default function KelasTab({ data, ubah, keTab }) {
       <Card>
         <Judul>Data Kelas</Judul>
         <div className="flex flex-col gap-4 p-4">
+          {!data.murid.length && (
+            <Pesan>
+              Pernah mengisi rapor di HP/laptop lain? Pakai <b>Pindah Perangkat</b> di bawah untuk mengambil data kelas Anda,
+              daripada mengisi ulang.
+            </Pesan>
+          )}
           <Ruas label="Sekolah">
             {sekolah ? (
               <select className={kelasInput} value={k.sekolahId} onChange={(e) => pilihSekolah(e.target.value)}>
@@ -176,6 +183,8 @@ export default function KelasTab({ data, ubah, keTab }) {
           )}
         </div>
       </Card>
+
+      <AmbilServer sekolah={sekolah} data={data} ubah={ubah} />
 
       <Card>
         <Judul>Kode Akses</Judul>

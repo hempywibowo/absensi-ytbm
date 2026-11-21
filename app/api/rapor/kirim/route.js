@@ -28,9 +28,22 @@ export async function POST(request) {
     const salahPin = await periksaPin(supabase, guru.id, pin);
     if (salahPin) return NextResponse.json({ error: salahPin }, { status: 401 });
 
-    const { data: lama } = await supabase.from("rapor_kelas").select("teacher_id").eq("id", kelasId).maybeSingle();
+    const { data: lama } = await supabase.from("rapor_kelas").select("teacher_id, uploaded_at").eq("id", kelasId).maybeSingle();
     if (lama && lama.teacher_id !== guru.id) {
       return NextResponse.json({ error: "Kelas ini sudah terdaftar atas nama guru lain." }, { status: 403 });
+    }
+    // Data di server lebih baru dari yang terakhir diketahui perangkat ini (dikirim dari perangkat lain):
+    // minta konfirmasi dulu supaya tidak tertimpa tanpa sengaja.
+    const diketahui = kelas.terakhirKirim ? new Date(kelas.terakhirKirim).getTime() : 0;
+    if (lama && !body.paksa && new Date(lama.uploaded_at).getTime() > diketahui + 5000) {
+      return NextResponse.json(
+        {
+          error: "Data kelas ini di server lebih baru — sudah dikirim dari perangkat lain.",
+          konflik: true,
+          serverWaktu: lama.uploaded_at,
+        },
+        { status: 409 },
+      );
     }
 
     const murid = (Array.isArray(d.murid) ? d.murid : []).slice(0, 80);
@@ -54,6 +67,7 @@ export async function POST(request) {
       }
     }
 
+    const waktuUpload = new Date().toISOString();
     const { error: e1 } = await supabase.from("rapor_kelas").upsert({
       id: kelasId,
       teacher_id: guru.id,
@@ -64,7 +78,7 @@ export async function POST(request) {
       semester: kelas.semester === "2" ? "2" : "1",
       jumlah_murid: murid.length,
       data: { kelas, murid, sem },
-      uploaded_at: new Date().toISOString(),
+      uploaded_at: waktuUpload,
     });
     if (e1) throw e1;
 
@@ -95,7 +109,7 @@ export async function POST(request) {
       .from("rapor_kiriman")
       .insert({ kelas_id: kelasId, teacher_id: guru.id, school_id: guru.school_id, jumlah_jurnal: jurnalRows.length });
 
-    return NextResponse.json({ ok: true, jurnal: jurnalRows.length, murid: murid.length });
+    return NextResponse.json({ ok: true, jurnal: jurnalRows.length, murid: murid.length, uploaded_at: waktuUpload });
   } catch (err) {
     console.error("[rapor] kirim:", err);
     const pesan = String(err?.message || "");
