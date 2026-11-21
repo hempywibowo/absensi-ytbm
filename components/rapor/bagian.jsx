@@ -1,3 +1,4 @@
+import { CP as _CP, LINGKUP_BY_ID as _LBI } from "@/lib/rapor-cp";
 // Komponen kecil yang dipakai bersama di halaman Rapor.
 
 export function Ruas({ label, children, bantu }) {
@@ -28,5 +29,37 @@ export function Judul({ children, kanan }) {
       <h2 className="font-semibold">{children}</h2>
       {kanan}
     </div>
+  );
+}
+
+// <option> untuk semua TP ATP, nilai "lingkupId|level".
+export function OpsiTp() {
+  return _CP.flatMap((e) =>
+    e.sub.flatMap((s) =>
+      s.lingkup.flatMap((l) =>
+        l.tp.map((tp, k) => (
+          <option key={`${l.id}|${k + 1}`} value={`${l.id}|${k + 1}`}>
+            {s.id} {l.nama} · TP {k + 1}: {tp.replace(/^Murid /, "")}
+          </option>
+        )),
+      ),
+    ),
+  );
+}
+
+// Label TP ringkas, mis. "2.3 Membangun hubungan sosial · TP2"
+export function ChipTp({ lingkup_id, level, onHapus, tone = "neutral" }) {
+  const l = _LBI[lingkup_id];
+  if (!l) return null;
+  const warna = tone === "warning" ? "bg-accent-soft text-accent" : "bg-primary-soft text-primary";
+  return (
+    <span title={l.tp[level - 1]} className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold ${warna}`}>
+      {l.sub} {l.nama} · TP{level}
+      {onHapus && (
+        <button type="button" onClick={onHapus} className="ml-0.5 font-bold" aria-label="Hapus label">
+          ×
+        </button>
+      )}
+    </span>
   );
 }

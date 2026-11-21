@@ -96,31 +96,38 @@ project-nya, lalu Deploy.
 
 ## Fitur Rapor Anak (`/rapor`)
 
-Modul terpisah untuk menyusun rapor PAUD/TK Kurikulum Merdeka **Fase Fondasi**, mengacu CP
+Modul untuk menyusun rapor PAUD/TK Kurikulum Merdeka **Fase Fondasi**, mengacu CP
 **SK BSKAP 046/H/KR/2025** (3 elemen, 14 sub-elemen) dan ATP dari **Panduan CP Fase Fondasi Edisi
-Revisi 2025** (41 lingkup, 139 TP — data di `lib/rapor-cp.js`). Fitur ini **tidak mengubah apa pun di
-absensi**: tidak ada tabel baru, tidak menulis ke database. Data rapor disimpan di perangkat guru
-(localStorage), per semester, plus unduh/pulihkan cadangan.
+Revisi 2025** (41 lingkup, 139 TP — data di `lib/rapor-cp.js`). Tidak mengubah tabel/fitur absensi.
 
-Alur guru (tab di `/rapor`):
-1. **Kelas** — sekolah (dropdown), nama kelas, kelompok usia, guru & pendamping, kepala sekolah, NIP,
-   semester (tombol Sem 1/Sem 2 di atas).
-2. **Murid** — ketik (data lengkap: NIS/NISN, TTL, agama, orang tua), tempel daftar, atau foto daftar absen.
-3. **PPM** — unggah file Word **PPM mingguan** guru. AI membaca TP minggu itu (dipetakan ke ATP resmi),
-   ceklis tiap anak, catatan anekdot, dan hasil karya. Guru memeriksa, lalu disimpan: ceklis jadi
-   bukti & menaikkan Penilaian CP, anekdot masuk ke catatan anak.
-4. **Catatan** — catatan harian tambahan (ketik / foto catatan tulisan tangan).
-5. **Penilaian CP** — per anak, semua 14 sub-elemen: tiap lingkup pilih sampai TP mana anak sudah sampai
-   (TP berikutnya otomatis jadi "sedang dikembangkan"), bukti per sub-elemen, indikator x/14, usulan
-   otomatis dari catatan, dan kokurikuler (tema + 8 Dimensi Profil Lulusan).
-6. **Rapor** — narasi per elemen + kokurikuler + refleksi disusun AI dari penilaian/PPM/catatan, bisa
-   disunting, lalu cetak/PDF A4 dengan lampiran capaian TP per sub-elemen.
+**Cara kerja data:** guru mengerjakan semuanya di HP/laptop (localStorage) sebagai draf yang masih bisa
+diubah. Setelah jam kelas, guru mereview catatan satu per satu, lalu menekan **"Kirim ke Server"** (pakai
+PIN guru). Data yang sudah direview tersalin ke tabel `rapor_*` di Supabase; dashboard kepala sekolah/admin
+membaca dari situ. Kirim ulang kapan saja untuk memperbarui.
+
+Alur guru (tab di `/rapor`, tombol Sem 1/Sem 2 di atas):
+1. **Kelas** — sekolah, guru (akun dari data guru yayasan), nama kelas, kelompok, kepala sekolah, NIP.
+2. **Murid** — ketik (data lengkap), tempel daftar, atau foto daftar absen.
+3. **Harian** — rencana TP minggu ini (3–5 TP dari ATP), catatan kegiatan (ketik/foto) yang otomatis
+   diberi label anak + sub-elemen/TP oleh AI, ceklis cepat TP minggu ini per anak, review satu per satu,
+   kelengkapan (TP/anak yang belum diamati minggu ini), dan Kirim ke Server.
+4. **PPM** — alternatif: unggah file Word PPM mingguan (dibaca AI jadi ceklis + anekdot).
+5. **Penilaian CP** — per anak, 14 sub-elemen: TP yang sudah dicapai per lingkup (naik otomatis dari
+   catatan/ceklis/PPM, bisa diubah guru), bukti, kokurikuler + 8 Dimensi Profil Lulusan.
+6. **Rapor** — narasi disusun AI dari semua bukti, bisa disunting, cetak/PDF A4 + lampiran capaian TP.
+
+**Dashboard** `/admin/rapor` (kepala sekolah: sekolahnya sendiri; admin: semua sekolah): kalender aktivitas
+guru per hari (catatan/ceklis), rencana TP minggu itu, rata-rata sub-elemen yang sudah ada bukti per kelas,
+terakhir kirim, buat/ganti PIN guru, dan detail kelas (bukti CP per anak, catatan terbaru, pratinjau narasi).
+
+**Setup sekali:** jalankan [`supabase/rapor.sql`](supabase/rapor.sql) di Supabase SQL Editor, lalu buat PIN
+tiap guru di dashboard Rapor.
 
 Env tambahan (di Vercel juga):
-- `ANTHROPIC_API_KEY` — wajib untuk fitur AI (baca foto/PPM, usulan penilaian, narasi). Isian manual tetap jalan tanpa ini.
+- `ANTHROPIC_API_KEY` — wajib untuk fitur AI (baca foto/PPM, label catatan, usulan penilaian, narasi).
 - `RAPOR_KODE_AKSES` — opsional tapi disarankan, supaya orang luar tidak bisa memakai kuota AI lewat URL publik.
 
-File/foto yang dikirim ke AI tidak disimpan di server; hanya hasil bacaannya yang disimpan di perangkat guru.
+Foto/file yang dikirim ke AI tidak disimpan; hanya teks hasil bacaannya.
 
 ## Catatan penting
 

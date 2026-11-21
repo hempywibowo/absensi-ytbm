@@ -7,7 +7,7 @@ export async function GET() {
   const supabase = getSupabaseAdmin();
   const [{ data: schools, error: e1 }, { data: teachers, error: e2 }] = await Promise.all([
     supabase.from("schools").select("id, name, address").order("name"),
-    supabase.from("teachers").select("name, school_id").order("name"),
+    supabase.from("teachers").select("id, name, school_id").order("name"),
   ]);
   if (e1 || e2) {
     return NextResponse.json({ error: (e1 || e2).message }, { status: 500 });
@@ -17,7 +17,7 @@ export async function GET() {
       id: s.id,
       nama: s.name,
       alamat: s.address || "",
-      guru: (teachers ?? []).filter((t) => t.school_id === s.id).map((t) => t.name),
+      guru: (teachers ?? []).filter((t) => t.school_id === s.id).map((t) => ({ id: t.id, nama: t.name })),
     })),
   });
 }

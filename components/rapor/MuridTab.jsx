@@ -74,7 +74,10 @@ export default function MuridTab({ data, ubah, keTab }) {
       const sem = {};
       for (const [k, s] of Object.entries(d.sem)) {
         const t = { ...s };
-        for (const f of ["catatan", "nilai", "bukti", "kokuAnak", "rapor"]) {
+        t.jurnal = (s.jurnal || [])
+          .map((j) => ({ ...j, anakIds: (j.anakIds || []).filter((x) => x !== m.id) }))
+          .filter((j) => j.anakIds.length || !j.anakIds);
+        for (const f of ["nilai", "bukti", "kokuAnak", "rapor", "hasilPpm"]) {
           t[f] = { ...s[f] };
           delete t[f][m.id];
         }
@@ -319,7 +322,7 @@ export default function MuridTab({ data, ubah, keTab }) {
       </Card>
 
       {data.murid.length > 0 && (
-        <Button type="button" onClick={() => keTab("catatan")}>
+        <Button type="button" onClick={() => keTab("harian")}>
           Lanjut isi catatan harian →
         </Button>
       )}

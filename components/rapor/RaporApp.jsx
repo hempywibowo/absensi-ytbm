@@ -5,7 +5,7 @@ import Link from "next/link";
 import { muatData, simpanData } from "@/lib/rapor-client";
 import KelasTab from "./KelasTab";
 import MuridTab from "./MuridTab";
-import CatatanTab from "./CatatanTab";
+import HarianTab from "./HarianTab";
 import PenilaianTab from "./PenilaianTab";
 import PpmTab from "./PpmTab";
 import RaporTab from "./RaporTab";
@@ -13,21 +13,28 @@ import RaporTab from "./RaporTab";
 const TAB = [
   { id: "kelas", label: "Kelas", ikon: "🏫" },
   { id: "murid", label: "Murid", ikon: "👧" },
+  { id: "harian", label: "Harian", ikon: "📝" },
   { id: "ppm", label: "PPM", ikon: "📂" },
-  { id: "catatan", label: "Catatan", ikon: "📝" },
   { id: "nilai", label: "Penilaian CP", ikon: "✅" },
   { id: "rapor", label: "Rapor", ikon: "📄" },
 ];
 
 export default function RaporApp() {
-  const [data, setData] = useState(muatData);
-  const [tab, setTab] = useState(() => (muatData().kelas.sekolahId ? "catatan" : "kelas"));
+  // Data dibaca sekali dari perangkat (dan langsung disimpan lagi dalam format terbaru).
+  const [data, setData] = useState(() => {
+    const d = muatData();
+    simpanData(d);
+    return d;
+  });
+  const [tab, setTab] = useState(() => (data.kelas.sekolahId && data.murid.length ? "harian" : "kelas"));
   const [gagalSimpan, setGagalSimpan] = useState(false);
 
   // Semua perubahan lewat sini: hitung data baru, simpan ke perangkat, lalu render ulang.
-  const ubah = useCallback((fn) => {
+  // Setiap perubahan ditandai waktunya, supaya terlihat ada yang belum dikirim ke server.
+  const ubah = useCallback((fn, { tanpaTanda = false } = {}) => {
     setData((lama) => {
-      const baru = fn(lama);
+      let baru = fn(lama);
+      if (!tanpaTanda && baru !== lama) baru = { ...baru, kelas: { ...baru.kelas, diubah: new Date().toISOString() } };
       setGagalSimpan(!simpanData(baru));
       return baru;
     });
@@ -90,14 +97,14 @@ export default function RaporApp() {
       <main className="flex flex-1 flex-col gap-4 px-4 py-5 print:p-0">
         {tab === "kelas" && <KelasTab {...props} />}
         {tab === "murid" && <MuridTab {...props} />}
-        {tab === "catatan" && <CatatanTab {...props} />}
+        {tab === "harian" && <HarianTab {...props} />}
         {tab === "ppm" && <PpmTab {...props} />}
         {tab === "nilai" && <PenilaianTab {...props} />}
         {tab === "rapor" && <RaporTab {...props} />}
       </main>
 
       <footer className="px-4 pb-6 text-center text-xs text-muted print:hidden">
-        Data rapor tersimpan di perangkat ini saja. Unduh cadangan secara berkala.
+        Data dikerjakan di perangkat ini, lalu dikirim ke server lewat tombol &quot;Kirim ke Server&quot; di tab Harian.
         <br />
         <Link href="/" className="font-semibold text-primary underline">
           ← Kembali ke Absensi

@@ -90,8 +90,7 @@ export default function PpmTab({ data, ubah, keTab }) {
       };
       const hasilPpm = hapusLama(s0.hasilPpm || {});
       const nilai = { ...s0.nilai };
-      const catatan = {};
-      for (const [k, v] of Object.entries(s0.catatan)) catatan[k] = sama ? v.filter((c) => c.ppmId !== sama.id) : v;
+      const jurnal = (s0.jurnal || []).filter((j) => !sama || j.ppmId !== sama.id);
 
       for (const a of r.anak) {
         if (!a.anak_id) continue;
@@ -110,16 +109,17 @@ export default function PpmTab({ data, ubah, keTab }) {
         if (!b.simpan || !b.anak_id || !b.isi.trim()) continue;
         const id = pakaiId(b.nama_tertulis, b.anak_id);
         const tp = b.tp_no ? r.tp[b.tp_no - 1]?.teks : "";
-        catatan[id] = [
-          ...(catatan[id] || []),
-          {
-            id: idBaru(),
-            tanggal: b.tanggal || r.tanggal || "",
-            isi: `[PPM minggu ${r.minggu || "?"}${tp ? ` · ${tp}` : ""}] ${b.isi.trim()}`,
-            sumber: "ppm",
-            ppmId,
-          },
-        ];
+        const t = b.tp_no ? r.tp[b.tp_no - 1] : null;
+        jurnal.push({
+          id: idBaru(),
+          tanggal: b.tanggal || r.tanggal || "",
+          isi: `[PPM minggu ${r.minggu || "?"}${tp ? ` · ${tp}` : ""}] ${b.isi.trim()}`,
+          anakIds: [id],
+          label: t ? [{ lingkup_id: t.lingkup_id, level: t.level }] : [],
+          sumber: "ppm",
+          status: "direview",
+          ppmId,
+        });
       }
 
       const ppm = [
@@ -139,7 +139,7 @@ export default function PpmTab({ data, ubah, keTab }) {
       return {
         ...d,
         murid: [...d.murid, ...muridBaru],
-        sem: { ...d.sem, [d.kelas.semester]: { ...s0, ppm, hasilPpm, nilai, catatan } },
+        sem: { ...d.sem, [d.kelas.semester]: { ...s0, ppm, hasilPpm, nilai, jurnal } },
       };
     });
     setInfo(`PPM minggu ${r.minggu || "?"} tersimpan. Penilaian CP anak yang TP-nya muncul sudah diperbarui.`);
@@ -156,11 +156,10 @@ export default function PpmTab({ data, ubah, keTab }) {
         delete t[p.id];
         hasilPpm[k] = t;
       }
-      const catatan = {};
-      for (const [k, v] of Object.entries(s0.catatan)) catatan[k] = v.filter((c) => c.ppmId !== p.id);
+      const jurnal = (s0.jurnal || []).filter((j) => j.ppmId !== p.id);
       return {
         ...d,
-        sem: { ...d.sem, [d.kelas.semester]: { ...s0, ppm: s0.ppm.filter((x) => x.id !== p.id), hasilPpm, catatan } },
+        sem: { ...d.sem, [d.kelas.semester]: { ...s0, ppm: s0.ppm.filter((x) => x.id !== p.id), hasilPpm, jurnal } },
       };
     });
   }

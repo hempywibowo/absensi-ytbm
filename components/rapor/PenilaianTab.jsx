@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, Button, Badge } from "@/components/ui";
 import { CP, DIMENSI, LINGKUP_BY_ID, SEMUA_SUB, capaianLingkup, subTerisi } from "@/lib/rapor-cp";
-import { panggilApi, semAktif, ubahSem, buktiPpmAnak } from "@/lib/rapor-client";
+import { panggilApi, semAktif, ubahSem, buktiPpmAnak, catatanAnak } from "@/lib/rapor-client";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
 
 // Penilaian per anak berdasarkan CP Fase Fondasi (14 sub-elemen) dan ATP-nya.
@@ -34,7 +34,7 @@ export default function PenilaianTab({ data, ubah, keTab }) {
   const nilai = S.nilai[anak.id] || {};
   const bukti = S.bukti[anak.id] || {};
   const kokuAnak = S.kokuAnak[anak.id] || { dimensi: [], bukti: "" };
-  const nCatatan = (S.catatan[anak.id] || []).length;
+  const nCatatan = catatanAnak(S, anak.id).length;
   const terisi = SEMUA_SUB.filter((s) => subTerisi(s, nilai)).length;
   const ppmAnak = buktiPpmAnak(S, anak.id);
 
@@ -71,7 +71,7 @@ export default function PenilaianTab({ data, ubah, keTab }) {
     try {
       const j = await panggilApi("usul-penilaian", {
         anak: { nama: anak.nama },
-        catatan: (S.catatan[anak.id] || []).map((c) => ({ tanggal: c.tanggal, isi: c.isi })),
+        catatan: catatanAnak(S, anak.id).map((c) => ({ tanggal: c.tanggal, isi: c.isi })),
       });
       if (!j.usulan.length) setInfo("Catatan harian belum memuat bukti yang cukup untuk dipetakan ke TP.");
       setUsulan(j.usulan.map((u) => ({ ...u, pilih: true })));
@@ -125,7 +125,7 @@ export default function PenilaianTab({ data, ubah, keTab }) {
       {/* Kelengkapan CP */}
       <Card className="flex flex-col gap-3 p-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold">Sub-elemen CP terisi</span>
+          <span className="font-semibold">Sub-elemen yang sudah ada bukti</span>
           <Badge tone={terisi === 14 ? "neutral" : "warning"}>{terisi}/14</Badge>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-primary-soft">
@@ -155,8 +155,8 @@ export default function PenilaianTab({ data, ubah, keTab }) {
         ) : (
           <p className="text-xs text-muted">
             Tip: isi catatan harian dulu, nanti AI bisa mengusulkan penilaian TP otomatis.{" "}
-            <button type="button" className="font-semibold text-primary underline" onClick={() => keTab("catatan")}>
-              Ke Catatan
+            <button type="button" className="font-semibold text-primary underline" onClick={() => keTab("harian")}>
+              Ke Harian
             </button>
           </p>
         )}

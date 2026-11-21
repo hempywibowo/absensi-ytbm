@@ -98,16 +98,29 @@ export default function KelasTab({ data, ubah, keTab }) {
             <input className={kelasInput} inputMode="numeric" value={k.npsn} onChange={(e) => set("npsn", e.target.value)} />
           </Ruas>
 
-          <Ruas label="Guru kelas" bantu={guruSekolah.length ? "Pilih dari daftar atau ketik nama." : undefined}>
-            <input
+          <Ruas label="Guru kelas (akun untuk kirim ke server)" bantu="Nama dari data guru yayasan. PIN dibuat oleh kepala sekolah/admin.">
+            <select
               className={kelasInput}
-              list="daftar-guru-rapor"
-              value={k.guru}
-              onChange={(e) => set("guru", e.target.value)}
-            />
+              value={k.guruId}
+              onChange={(e) => {
+                const g = guruSekolah.find((x) => x.id === e.target.value);
+                ubah((d) => ({ ...d, kelas: { ...d.kelas, guruId: e.target.value, guru: g?.nama || d.kelas.guru } }));
+              }}
+            >
+              <option value="">— Pilih guru —</option>
+              {guruSekolah.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.nama}
+                </option>
+              ))}
+            </select>
+          </Ruas>
+
+          <Ruas label="Nama guru di rapor (bisa disesuaikan, mis. dengan gelar)">
+            <input className={kelasInput} value={k.guru} onChange={(e) => set("guru", e.target.value)} />
             <datalist id="daftar-guru-rapor">
               {guruSekolah.map((g) => (
-                <option key={g} value={g} />
+                <option key={g.id} value={g.nama} />
               ))}
             </datalist>
           </Ruas>

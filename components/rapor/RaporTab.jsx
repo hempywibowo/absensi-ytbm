@@ -4,7 +4,7 @@ import { useState } from "react";
 import { flushSync } from "react-dom";
 import { Card, Button, Badge } from "@/components/ui";
 import { CP, SEMUA_SUB, subTerisi } from "@/lib/rapor-cp";
-import { panggilApi, semAktif, ubahSem, buktiPpmAnak } from "@/lib/rapor-client";
+import { panggilApi, semAktif, ubahSem, buktiPpmAnak, catatanAnak } from "@/lib/rapor-client";
 import LembarRapor from "./LembarRapor";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
 
@@ -40,7 +40,7 @@ export default function RaporTab({ data, ubah, keTab }) {
 
   const anak = data.murid.find((m) => m.id === anakId) || data.murid[0];
   const r = S.rapor[anak.id] || {};
-  const nCatatan = (id) => (S.catatan[id] || []).length;
+  const nCatatan = (id) => catatanAnak(S, id).length;
   const nSub = (id) => SEMUA_SUB.filter((s) => subTerisi(s, S.nilai[id])).length;
   const bisaNarasi = (id) => nSub(id) > 0 || nCatatan(id) > 0 || buktiPpmAnak(S, id).length > 0;
 
@@ -53,7 +53,7 @@ export default function RaporTab({ data, ubah, keTab }) {
       kelas: data.kelas,
       nilai: S.nilai[m.id] || {},
       bukti: S.bukti[m.id] || {},
-      catatan: (S.catatan[m.id] || []).map((c) => ({ tanggal: c.tanggal, isi: c.isi })),
+      catatan: catatanAnak(S, m.id).map((c) => ({ tanggal: c.tanggal, isi: c.isi })),
       koku: { ...S.koku, ...(S.kokuAnak[m.id] || {}) },
       ppm: buktiPpmAnak(S, m.id),
     });
