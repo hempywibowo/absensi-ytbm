@@ -20,13 +20,14 @@ export default function LembarRapor({ anak, kelas, rapor, nilai, koku }) {
   const nomor = (s) => (s?.trim() ? s : " ");
 
   return (
-    <section className="lembar-rapor bg-white text-[10.5pt] leading-snug text-black">
+    <section className="lembar-rapor bg-white text-[10pt] leading-snug text-black">
       <style>{`
-        @page { size: A4; margin: 14mm 15mm; }
+        @page { size: A4; margin: 12mm 14mm; }
         .lembar-rapor { break-after: page; }
         .lembar-rapor:last-child { break-after: auto; }
         .lembar-rapor .blok { break-inside: avoid; }
         .lembar-rapor .halaman-baru { break-before: page; }
+        .lembar-rapor p { orphans: 3; widows: 3; }
       `}</style>
 
       <header className="mb-3 border-b-[3px] border-double border-black pb-2 text-center">
@@ -66,7 +67,7 @@ export default function LembarRapor({ anak, kelas, rapor, nilai, koku }) {
       <p className="mb-1 font-bold uppercase">A. Capaian Pembelajaran</p>
       {CP.map((e) => (
         <div key={e.id} className="mb-3 border border-black">
-          <p className="border-b border-black bg-neutral-100 px-2 py-1 font-bold">
+          <p className="border-b border-black bg-neutral-100 px-2 py-1 font-bold [break-after:avoid] [break-inside:avoid]">
             {e.no}. {e.nama}
           </p>
           <div className="px-3 py-2">{paragraf(rapor[e.id])}</div>
@@ -141,7 +142,7 @@ export default function LembarRapor({ anak, kelas, rapor, nilai, koku }) {
       <div className="blok">
       <div className="mb-3">
         <p className="mb-1 font-bold uppercase">F. Tanggapan Orang Tua/Wali</p>
-        <div className="h-16 border border-black" />
+        <div className="h-14 border border-black" />
       </div>
 
       <div className="mt-4 text-[10pt]">
@@ -157,7 +158,7 @@ export default function LembarRapor({ anak, kelas, rapor, nilai, koku }) {
             <div key={jabatan}>
               <p>{atas || " "}</p>
               <p>{jabatan}</p>
-              <div className="h-14" />
+              <div className="h-12" />
               <p className={nama ? "font-semibold underline" : ""}>{nama || "(...............................)"}</p>
               <p className="text-[9pt]">{nip ? `NIP/NUPTK ${nip}` : nomor("")}</p>
             </div>
