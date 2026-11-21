@@ -89,6 +89,10 @@ export async function GET(req) {
       narasiSiap: murid.filter((m) => sem.rapor?.[m.id]?.agama).length,
       rencanaMinggu,
       ppm: (sem.ppm || []).length,
+      // PPM mingguan yang diunggah guru untuk minggu-minggu dalam rentang ini.
+      ppmMinggu: (sem.ppm || [])
+        .filter((p) => p.tanggal && p.tanggal >= addDays(from, -6) && p.tanggal <= to)
+        .map((p) => ({ tanggal: p.tanggal, minggu: p.minggu, tema: p.subTema || p.tema })),
       terakhirKirim: k.uploaded_at,
     });
     if (!g.terakhirKirim || k.uploaded_at > g.terakhirKirim) g.terakhirKirim = k.uploaded_at;

@@ -5,6 +5,7 @@ import { Card, Button, Badge } from "@/components/ui";
 import { CP, LINGKUP_BY_ID } from "@/lib/rapor-cp";
 import { docxKeHtml, idBaru, panggilApi, semAktif, tanggalIndo } from "@/lib/rapor-client";
 import { Ruas, kelasInput, Pesan, Judul } from "./bagian";
+import KirimServer from "./KirimServer";
 
 const BARU = "__baru";
 const SIKLUS = { true: false, false: null, null: true }; // ✓ -> ✗ -> kosong -> ✓
@@ -400,6 +401,8 @@ export default function PpmTab({ data, ubah, keTab }) {
           </ul>
         )}
       </Card>
+
+      <KirimServer data={data} ubah={ubah} />
 
       <Button type="button" variant="outline" onClick={() => keTab("nilai")}>
         Lihat Penilaian CP →

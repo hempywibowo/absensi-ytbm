@@ -116,7 +116,7 @@ export default function PantauanRaporPage() {
           </div>
 
           <p className="text-xs text-muted">
-            🟩 ada catatan/ceklis · 🟥 tidak ada (hari sudah lewat) · ⬜ izin / belum lewat. Data muncul setelah guru menekan
+            🟩 ada catatan/ceklis harian · 🟧 PPM minggu ini sudah diunggah · 🟥 tidak ada (hari sudah lewat) · ⬜ izin / belum lewat. Data muncul setelah guru menekan
             &quot;Kirim ke Server&quot;. Kelengkapan CP adalah rata-rata sub-elemen yang sudah ada bukti per anak (target 14 di akhir
             semester), bukan nilai harian.
           </p>
@@ -135,7 +135,7 @@ export default function PantauanRaporPage() {
                       </th>
                     ))}
                     <th className="px-2 py-2 text-center">Catatan</th>
-                    <th className="px-2 py-2">Rencana TP</th>
+                    <th className="px-2 py-2">Rencana / PPM</th>
                     <th className="px-2 py-2">Bukti CP</th>
                     <th className="px-2 py-2">Terakhir kirim</th>
                     <th className="px-2 py-2">PIN</th>
@@ -146,6 +146,8 @@ export default function PantauanRaporPage() {
                     .filter((g) => g.sekolah === sk)
                     .map((g) => {
                       const rencana = g.kelas.flatMap((k) => k.rencanaMinggu.filter((r) => r.senin === senin));
+                      // Minggu yang sudah diunggah PPM-nya tidak dianggap "tidak mengisi".
+                      const ppm = g.kelas.flatMap((k) => (k.ppmMinggu || []).filter((p) => seninDari(p.tanggal) === senin));
                       return (
                         <tr key={g.id} className="border-t border-border align-top">
                           <td className="px-4 py-2">
@@ -167,28 +169,33 @@ export default function PantauanRaporPage() {
                             const kelasAda = g.kelas.length > 0;
                             const warna = n
                               ? "bg-primary-soft text-primary"
-                              : izin || !lewat || !kelasAda
-                                ? "bg-background text-muted"
-                                : "bg-danger-soft text-danger";
+                              : ppm.length
+                                ? "bg-accent-soft text-accent"
+                                : izin || !lewat || !kelasAda
+                                  ? "bg-background text-muted"
+                                  : "bg-danger-soft text-danger";
                             return (
                               <td key={h} className="px-1 py-2 text-center">
                                 <span className={`inline-block min-w-9 rounded-md px-1.5 py-1 text-xs font-bold ${warna}`} title={izin ? "Izin" : `${g.harian[h]?.catatan || 0} catatan, ${g.harian[h]?.ceklis || 0} anak dicentang`}>
-                                  {izin ? "izin" : n || (lewat && kelasAda ? "0" : "–")}
+                                  {izin ? "izin" : n || (ppm.length ? "PPM" : lewat && kelasAda ? "0" : "–")}
                                 </span>
                               </td>
                             );
                           })}
                           <td className="px-2 py-2 text-center">{hari.reduce((m, h) => m + (g.harian[h]?.catatan || 0), 0)}</td>
                           <td className="px-2 py-2 text-xs">
-                            {rencana.length ? (
-                              rencana.map((r, i) => (
-                                <span key={i} className="block">
-                                  ✓ {r.subTema || r.tema || "Tanpa tema"} ({r.jumlahTp} TP)
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-muted">—</span>
-                            )}
+                            {rencana.map((r, i) => (
+                              <span key={i} className="block">
+                                ✓ {r.subTema || r.tema || "Tanpa tema"} ({r.jumlahTp} TP)
+                              </span>
+                            ))}
+                            {ppm.map((p, i) => (
+                              <span key={`p${i}`} className="block text-accent">
+                                📂 PPM minggu {p.minggu || "?"}
+                                {p.tema ? ` · ${p.tema}` : ""}
+                              </span>
+                            ))}
+                            {!rencana.length && !ppm.length && <span className="text-muted">—</span>}
                           </td>
                           <td className="px-2 py-2 text-xs">
                             {g.kelas.map((k) => (
