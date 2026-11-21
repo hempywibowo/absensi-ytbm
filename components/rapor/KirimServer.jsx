@@ -102,9 +102,25 @@ export default function KirimServer({ data, ubah }) {
           })),
         };
       }
-      const j = await panggilApi("kirim", { pin, data: dataUntukServer({ ...data, sem }) });
+      const muatan = { pin, data: dataUntukServer({ ...data, sem }) };
+      let j;
+      try {
+        j = await panggilApi("kirim", muatan);
+      } catch (e) {
+        if (!e.konflik) throw e;
+        const ok = confirm(
+          `Data kelas ini di server lebih baru (dikirim dari perangkat lain pada ${waktu(e.serverWaktu)}).\n\n` +
+            `Kalau dilanjutkan, data di server DIGANTI dengan data dari perangkat ini.\n` +
+            `Bila ragu, batalkan lalu pakai "Ambil data dari server" di tab Kelas.\n\nTetap kirim?`,
+        );
+        if (!ok) {
+          setGalat("Pengiriman dibatalkan. Ambil dulu data terbaru dari server di tab Kelas bila perlu.");
+          return;
+        }
+        j = await panggilApi("kirim", { ...muatan, paksa: true });
+      }
       simpanPin(ingat ? pin : "");
-      const sekarang = new Date().toISOString();
+      const sekarang = j.uploaded_at || new Date().toISOString();
       ubah((d) => ({ ...d, kelas: { ...d.kelas, terakhirKirim: sekarang, diubah: sekarang } }), { tanpaTanda: true });
       setInfo(
         `Terkirim ✓ ${j.jurnal} catatan, ${j.murid} murid${mediaBelum.length ? `, ${mediaBelum.length - gagalMedia}/${mediaBelum.length} foto/video` : ""}. Kepala sekolah sudah bisa melihatnya di dashboard.`,

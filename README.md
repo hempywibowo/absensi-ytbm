@@ -116,6 +116,11 @@ PPM yang sudah berisi asesmen (☑/☐, anekdot) tetap bisa diunggah untuk menge
 **Data**: dikerjakan di perangkat guru (draf, bisa diubah). Tombol **Kirim ke Server** (PIN guru) mengunggah
 foto/video ke Google Drive yayasan lalu menyalin data yang sudah direview ke tabel `rapor_*`.
 
+**Bantuan untuk pengguna**: Buku Panduan bergambar di `/rapor/panduan` (juga bisa dicetak/PDF; screenshot di
+`public/panduan/`), dan tombol **💬 Bantuan** di aplikasi — asisten AI yang menjawab pertanyaan berdasarkan isi
+Buku Panduan. Fitur lain: dikte suara (🎤) untuk catatan, pindah perangkat (ambil data dari server), dan pilihan
+tema warna (Pelangi/Laut/Bunga/Hutan).
+
 **Dashboard** `/admin/rapor` (kepsek: sekolahnya; admin: semua): status PPM minggu ini & minggu depan
 (tepat waktu/terlambat/belum, kelengkapan), laporan harian per hari + skor kesesuaian, laporan mingguan,
 rata-rata bukti CP, PIN guru, dan detail kelas (rencana, laporan, foto kegiatan, bukti CP per anak, narasi).

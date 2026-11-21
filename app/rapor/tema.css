@@ -1,0 +1,65 @@
+/* Tema ceria khusus halaman Rapor (tidak memengaruhi aplikasi absensi). */
+.tema-ceria {
+  --background: #fff8ef;
+  --surface: #ffffff;
+  --foreground: #2d2a4a;
+  --muted: #6c678a;
+  --border: #ebe2f6;
+  --primary: #6a4fc9;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f1ecff;
+  --accent: #f2711c;
+  --accent-soft: #fff0e1;
+  --danger: #d6404a;
+  --danger-soft: #fdecee;
+  color-scheme: light;
+  color: var(--foreground);
+  background-color: var(--background);
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22220%22%20height%3D%22220%22%20viewBox%3D%220%200%20220%20220%22%3E%0A%3Cg%20opacity%3D%220.16%22%3E%0A%3Cpath%20d%3D%22M30%2018%20l5%2011%2012%201.5%20-9%208%202.5%2012%20-10.5%20-6%20-10.5%206%202.5%20-12%20-9%20-8%2012%20-1.5z%22%20fill%3D%22%23ffb703%22/%3E%0A%3Cpath%20d%3D%22M150%2040%20a14%2014%200%200%201%2027%20-3%20a11%2011%200%201%201%206%2021%20h-36%20a10%2010%200%200%201%203%20-18z%22%20fill%3D%22%234cc9f0%22/%3E%0A%3Ccircle%20cx%3D%22182%22%20cy%3D%22150%22%20r%3D%2211%22%20fill%3D%22%23f72585%22/%3E%0A%3Cpath%20d%3D%22M60%20150%20l14%20-24%2014%2024z%22%20fill%3D%22%2380ed99%22/%3E%0A%3Crect%20x%3D%22110%22%20y%3D%22110%22%20width%3D%2218%22%20height%3D%2218%22%20rx%3D%224%22%20transform%3D%22rotate%2818%20119%20119%29%22%20fill%3D%22%239b5de5%22/%3E%0A%3Cpath%20d%3D%22M20%2095%20q8%20-10%2016%200%20t16%200%22%20stroke%3D%22%23ff8fab%22%20stroke-width%3D%225%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22/%3E%0A%3Ccircle%20cx%3D%2295%22%20cy%3D%22205%22%20r%3D%226%22%20fill%3D%22%23ffb703%22/%3E%0A%3Cpath%20d%3D%22M190%2085%20l4%208%208%201%20-6%205%202%208%20-8%20-4%20-8%204%202%20-8%20-6%20-5%208%20-1z%22%20fill%3D%22%23f72585%22/%3E%0A%3C/g%3E%3C/svg%3E"), linear-gradient(180deg, #fff3e6 0%, #f4f0ff 55%, #eaf8ff 100%);
+  background-size: 220px 220px, 100% 100%;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+.tema-ceria .rounded-2xl {
+  box-shadow: 0 6px 18px rgba(106, 79, 201, 0.09);
+}
+.tema-ceria .kepala-ceria {
+  background: var(--kepala);
+}
+.tema-ceria {
+  --kepala: linear-gradient(115deg, #ff6f91 0%, #9b5de5 52%, #00a8e8 100%);
+}
+
+/* Pilihan tema warna (tab Kelas → Tema tampilan) */
+.tema-ceria[data-tema="laut"] {
+  --primary: #0b6fae;
+  --primary-soft: #e2f3fc;
+  --accent: #ff7f3f;
+  --accent-soft: #fff0e6;
+  --border: #dcecf7;
+  --kepala: linear-gradient(115deg, #48cae4 0%, #0096c7 50%, #3a0ca3 100%);
+  background-color: #eef9ff;
+}
+.tema-ceria[data-tema="bunga"] {
+  --primary: #c8326e;
+  --primary-soft: #ffe7f1;
+  --accent: #f08c00;
+  --accent-soft: #fff3df;
+  --border: #f7dde8;
+  --kepala: linear-gradient(115deg, #ffb703 0%, #fb6f92 50%, #c8326e 100%);
+  background-color: #fff3f7;
+}
+.tema-ceria[data-tema="hutan"] {
+  --primary: #23864a;
+  --primary-soft: #e4f6e8;
+  --accent: #e98a00;
+  --accent-soft: #fff4dc;
+  --border: #dcefdf;
+  --kepala: linear-gradient(115deg, #f9c74f 0%, #52b788 50%, #1b7a4a 100%);
+  background-color: #f4fbef;
+}
+@media print {
+  .tema-ceria {
+    background: #ffffff !important;
+  }
+}

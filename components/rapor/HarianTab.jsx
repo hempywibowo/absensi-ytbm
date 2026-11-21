@@ -19,6 +19,7 @@ import {
 import FotoPicker from "./FotoPicker";
 import KirimServer from "./KirimServer";
 import LampiranMedia, { MiniMedia } from "./LampiranMedia";
+import TombolSuara from "./TombolSuara";
 import { EvaluasiHarian, LaporanMingguan } from "./EvaluasiPpm";
 import { ChipTp, Judul, OpsiTp, Pesan, Ruas, kelasInput } from "./bagian";
 
@@ -410,6 +411,7 @@ export default function HarianTab({ data, ubah, keTab }) {
 
           {mode === "ketik" && (
             <form onSubmit={simpanKetik} className="flex flex-col gap-2">
+              <TombolSuara onTeks={(t) => setIsi((x) => (x.trim() ? `${x.trimEnd()} ` : "") + t)} />
               <textarea
                 className={`${kelasInput} min-h-28`}
                 value={isi}
@@ -481,6 +483,13 @@ export default function HarianTab({ data, ubah, keTab }) {
         <Card className="border-primary">
           <Judul kanan={<Badge>{reviewKe + 1}/{antrianReview.length}</Badge>}>Review catatan</Judul>
           <div className="flex flex-col gap-3 p-4">
+            <TombolSuara
+              onTeks={(t) =>
+                setJurnal((list) =>
+                  list.map((e) => (e.id === cur.id ? { ...e, isi: (e.isi.trim() ? `${e.isi.trimEnd()} ` : "") + t } : e)),
+                )
+              }
+            />
             <textarea className={`${kelasInput} min-h-28`} value={cur.isi} onChange={(e) => ubahEntri(cur.id, { isi: e.target.value })} />
             {cur.namaTertulis && !cur.anakIds?.length && (
               <p className="text-xs text-accent">Nama di foto: {cur.namaTertulis} — pilih anaknya di bawah.</p>

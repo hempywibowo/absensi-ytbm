@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, Badge, Button } from "@/components/ui";
+import BantuanChat from "@/components/rapor/BantuanChat";
 
 const HARI = ["Sen", "Sel", "Rab", "Kam", "Jum"];
 
@@ -90,8 +91,14 @@ export default function PantauanRaporPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      <BantuanChat konteks="dashboard Pantauan Rapor (kepala sekolah/admin)" />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Pantauan Rapor</h1>
+        <h1 className="text-xl font-bold">
+          Pantauan Rapor{" "}
+          <Link href="/rapor/panduan#kepsek" className="ml-2 align-middle text-sm font-semibold text-primary underline">
+            ❓ Panduan
+          </Link>
+        </h1>
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" className="px-3 py-2" onClick={() => setSenin(geser(senin, -7))}>
             ‹
